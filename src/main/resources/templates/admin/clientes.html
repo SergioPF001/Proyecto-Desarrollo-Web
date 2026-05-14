@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='clientes')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Gestión de Clientes</div>
+                <div class="admin-topbar-sub">Cine La Estación</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">Ver Sitio</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="row g-4">
+
+                <!-- FORMULARIO AGREGAR CLIENTE -->
+                <div class="col-lg-4">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-3">Agregar Cliente</h6>
+                        <form th:action="@{/admin/clientes/agregar}" th:object="${cliente}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" th:field="*{nombre}" class="form-control" placeholder="Nombre completo" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" th:field="*{email}" class="form-control" placeholder="correo@ejemplo.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" th:field="*{telefono}" class="form-control" placeholder="08012345678">
+                            </div>
+                            <button type="submit" class="btn-admin-primary w-100">+ Guardar Cliente</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- LISTADO DE CLIENTES -->
+                <div class="col-lg-8">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <div class="admin-card-title">Clientes Registrados</div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Teléfono</th>
+                                        <th>Reservas</th>
+                                        <th>Total Gastado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="c : ${clientes}">
+                                        <td th:text="${c.id}"></td>
+                                        <td class="fw-semibold" th:text="${c.nombre}"></td>
+                                        <td th:text="${c.email}"></td>
+                                        <td th:text="${c.telefono}"></td>
+                                        <td th:text="${pedidosPorCliente[c.nombre]}"></td>
+                                        <td>₦<span th:text="${gastadoPorCliente[c.nombre]}"></span></td>
+                                        <td>
+                                            <a th:href="@{/admin/clientes/eliminar/{id}(id=${c.id})}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               onclick="return confirm('¿Eliminar?')">Eliminar</a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(clientes)}">
+                                        <td colspan="7" class="text-center text-muted py-3">Sin clientes registrados.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

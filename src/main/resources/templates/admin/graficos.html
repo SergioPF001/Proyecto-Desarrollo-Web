@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráficos - Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='graficos')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Gráficos</div>
+                <div class="admin-topbar-sub">Cine La Estación</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">Ver Sitio</a>
+        </div>
+
+        <div class="admin-main">
+
+            <!-- KPIs -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="kpi-card">
+                        <div class="kpi-num" th:text="${totalClientes}"></div>
+                        <div class="kpi-lbl">👥 Clientes Registrados</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kpi-card">
+                        <div class="kpi-num" th:text="${totalPeliculas}"></div>
+                        <div class="kpi-lbl">🎬 Películas en Cartelera</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kpi-card">
+                        <div class="kpi-num" th:text="${totalReservas}"></div>
+                        <div class="kpi-lbl">◈ Reservas Totales</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="chart-card">
+                        <h5>Duración por Película (minutos)</h5>
+                        <canvas id="barHorizontalChart" height="120"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="chart-card">
+                        <h5>Distribución de Reservas</h5>
+                        <canvas id="pieChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-1">
+                <div class="col-12">
+                    <div class="chart-card">
+                        <h5>Ingresos Estimados por Semana</h5>
+                        <canvas id="lineChart" height="80"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/webjars/chart.js/dist/chart.umd.js}"></script>
+<script th:inline="javascript">
+    const peliculas = /*[[${peliculas}]]*/ [];
+    const reservas  = /*[[${reservas}]]*/ [];
+
+    const titulos    = peliculas.map(p => p.titulo);
+    const duraciones = peliculas.map(p => p.duracion);
+
+    const estados = { 'Confirmada': 0, 'Pendiente': 0, 'Cancelada': 0 };
+    reservas.forEach(r => { if (estados[r.estado] !== undefined) estados[r.estado]++; });
+
+    new Chart(document.getElementById('barHorizontalChart'), {
+        type: 'bar',
+        data: {
+            labels: titulos,
+            datasets: [{
+                label: 'Duración (min)',
+                data: duraciones,
+                backgroundColor: ['rgba(110,17,176,0.8)','rgba(245,184,0,0.8)','rgba(89,22,139,0.7)','rgba(220,38,38,0.7)'],
+                borderColor: ['#6e11b0','#F5B800','#59168b','#DC2626'],
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true }, y: { grid: { display: false } } }
+        }
+    });
+
+    new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Confirmada', 'Pendiente', 'Cancelada'],
+            datasets: [{
+                data: [estados['Confirmada'], estados['Pendiente'], estados['Cancelada']],
+                backgroundColor: ['#6e11b0', '#F5B800', '#DC2626'],
+                borderWidth: 2, borderColor: '#fff'
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'],
+            datasets: [{
+                label: 'Ingresos ($)',
+                data: [320, 450, 380, 520, 490, 610, 570, 720],
+                borderColor: '#F5B800',
+                backgroundColor: 'rgba(245,184,0,0.12)',
+                tension: 0.4, fill: true,
+                pointBackgroundColor: '#6e11b0',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
+        }
+    });
+</script>
+</body>
+</html>

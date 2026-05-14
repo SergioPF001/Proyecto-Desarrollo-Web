@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - Cine La Estación</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='configuracion')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Configuración del Sistema</div>
+                <div class="admin-topbar-sub">Cine La Estación - Abuja</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">⊞ Ver Sitio Web</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <div>
+                        <div class="admin-card-title">Información del Cine</div>
+                        <div class="admin-card-sub">Configuración general del establecimiento</div>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Nombre del Cine</label>
+                                <input type="text" class="form-control" value="Cine La Estación">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Teléfono</label>
+                                <input type="text" class="form-control" value="08064206913">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small">Dirección</label>
+                                <input type="text" class="form-control" value="107 Gbagalape, Abuja 900103">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Email</label>
+                                <input type="email" class="form-control" value="info@cinelaestacion.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Horario</label>
+                                <input type="text" class="form-control" value="10:00 AM - 11:00 PM">
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn-admin-primary">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div>
+                        <div class="admin-card-title">Precios</div>
+                        <div class="admin-card-sub">Configuración de precios de entradas y servicios</div>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Precio Entrada General (₦)</label>
+                                <input type="number" class="form-control" value="2500">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Precio Entrada VIP (₦)</label>
+                                <input type="number" class="form-control" value="5000">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Combo Palomitas Grande (₦)</label>
+                                <input type="number" class="form-control" value="1500">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small">Combo Familiar (₦)</label>
+                                <input type="number" class="form-control" value="3500">
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn-admin-primary">Actualizar Precios</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

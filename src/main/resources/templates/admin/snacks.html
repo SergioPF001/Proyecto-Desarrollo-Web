@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snacks - Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='snacks')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Gestión de Snacks</div>
+                <div class="admin-topbar-sub">Cine La Estación</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">Ver Sitio</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="row g-4">
+
+                <!-- FORMULARIO AGREGAR SNACK -->
+                <div class="col-lg-4">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-3">Agregar Snack</h6>
+                        <form th:action="@{/admin/snacks/agregar}" th:object="${snack}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" th:field="*{nombre}" class="form-control" placeholder="Nombre del snack" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Categoría</label>
+                                <select th:field="*{categoria}" class="form-select">
+                                    <option value="Snacks">Snacks</option>
+                                    <option value="Bebidas">Bebidas</option>
+                                    <option value="Combos">Combos</option>
+                                    <option value="Dulces">Dulces</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Precio (₦)</label>
+                                <input type="number" th:field="*{precio}" class="form-control" placeholder="1500">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Stock</label>
+                                <input type="number" th:field="*{stock}" class="form-control" placeholder="100" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <input type="text" th:field="*{descripcion}" class="form-control" placeholder="Descripción breve">
+                            </div>
+                            <button type="submit" class="btn-admin-primary w-100">+ Guardar Snack</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- LISTADO DE SNACKS -->
+                <div class="col-lg-8">
+                    <div class="admin-card-title px-2 mb-3">Snacks Registrados</div>
+                    <div class="row g-3">
+                        <div class="col-md-6" th:each="s : ${snacks}">
+                            <div class="admin-pelicula-card">
+                                <div class="admin-movie-header">
+                                    <div class="admin-movie-title" th:text="${s.nombre}"></div>
+                                    <span class="admin-stock-badge">Stock: <span th:text="${s.stock}"></span></span>
+                                </div>
+                                <div class="admin-movie-genre" th:text="${s.categoria}"></div>
+                                <div class="admin-meta-row">
+                                    <span>Precio:</span>
+                                    <span>₦<span th:text="${s.precio}"></span></span>
+                                </div>
+                                <p class="small text-muted mt-2 mb-3" th:text="${s.descripcion}"></p>
+                                <a th:href="@{/admin/snacks/eliminar/{id}(id=${s.id})}"
+                                   class="btn btn-sm btn-outline-danger w-100"
+                                   onclick="return confirm('¿Eliminar este snack?')">Eliminar</a>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(snacks)}" class="col-12">
+                            <p class="text-center text-muted py-4">Sin snacks registrados.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

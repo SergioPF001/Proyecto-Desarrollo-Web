@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Cine La Estación</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='dashboard')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Dashboard General</div>
+                <div class="admin-topbar-sub">Cine La Estación - Abuja</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">⊞ Ver Sitio Web</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="kpi-admin kpi-purple">
+                        <div class="kpi-admin-icon">$</div>
+                        <div class="kpi-admin-label">Total Ingresos</div>
+                        <div class="kpi-admin-num">₦<span th:text="${#numbers.formatInteger(totalIngresos, 1, 'COMMA')}"></span></div>
+                        <div class="kpi-admin-sub">+12% desde el mes pasado</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="kpi-admin kpi-blue">
+                        <div class="kpi-admin-icon">◈</div>
+                        <div class="kpi-admin-label">Total Reservas</div>
+                        <div class="kpi-admin-num" th:text="${#lists.size(reservas)}"></div>
+                        <div class="kpi-admin-sub"><span th:text="${pendientes}"></span> pendientes</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="kpi-admin kpi-green">
+                        <div class="kpi-admin-icon">⊞</div>
+                        <div class="kpi-admin-label">Películas Activas</div>
+                        <div class="kpi-admin-num" th:text="${#lists.size(peliculas)}"></div>
+                        <div class="kpi-admin-sub">En cartelera ahora</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="kpi-admin kpi-yellow">
+                        <div class="kpi-admin-icon">👥</div>
+                        <div class="kpi-admin-label">Clientes</div>
+                        <div class="kpi-admin-num" th:text="${#lists.size(clientes)}"></div>
+                        <div class="kpi-admin-sub">Clientes registrados</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <div>
+                                <div class="admin-card-title">Reservas Recientes</div>
+                                <div class="admin-card-sub">Últimas reservas realizadas</div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-2">
+                            <div th:each="r : ${reservas}" class="reserva-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="reserva-item-icon">◈</div>
+                                    <div>
+                                        <div class="reserva-item-name" th:text="${r.clienteNombre}"></div>
+                                        <div class="reserva-item-sub" th:text="${r.pelicula}"></div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="reserva-item-amount">₦<span th:text="${#numbers.formatInteger(r.total, 1, 'COMMA')}"></span></div>
+                                    <span class="estado-badge"
+                                          th:text="${r.estado}"
+                                          th:class="${r.estado == 'Confirmada'} ? 'estado-badge badge-confirmado' : (${r.estado == 'Pendiente'} ? 'estado-badge badge-pendiente' : 'estado-badge badge-cancelado')"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <div>
+                                <div class="admin-card-title">Películas Populares</div>
+                                <div class="admin-card-sub">Películas más reservadas</div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-2">
+                            <div th:each="p : ${peliculas}" class="reserva-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="reserva-item-icon" style="background:#FEF3C7;color:#92400E;">⊞</div>
+                                    <div>
+                                        <div class="reserva-item-name" th:text="${p.titulo}"></div>
+                                        <div class="reserva-item-sub">
+                                            <span th:text="${p.genero}"></span> •
+                                            <span th:text="${p.duracion}"></span> min
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="reserva-item-amount">₦<span th:text="${#numbers.formatInteger(p.precio, 1, 'COMMA')}"></span></div>
+                                    <div style="font-size:0.73rem;color:var(--text-muted)" th:text="${p.clasificacion}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

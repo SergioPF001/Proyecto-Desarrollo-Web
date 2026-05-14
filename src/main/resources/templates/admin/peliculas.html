@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Películas - Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='peliculas')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Gestión de Películas</div>
+                <div class="admin-topbar-sub">Cine La Estación</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">Ver Sitio</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="row g-4">
+
+                <!-- FORMULARIO AGREGAR PELÍCULA -->
+                <div class="col-lg-4">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-3">Agregar Película</h6>
+                        <form th:action="@{/admin/peliculas/agregar}" th:object="${pelicula}" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">Título</label>
+                                <input type="text" th:field="*{titulo}" class="form-control" placeholder="Título de la película" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Género</label>
+                                <input type="text" th:field="*{genero}" class="form-control" placeholder="Acción / Aventura">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Duración (min)</label>
+                                <input type="number" th:field="*{duracion}" class="form-control" placeholder="120">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Clasificación</label>
+                                <input type="text" th:field="*{clasificacion}" class="form-control" placeholder="PG-13">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Precio (₦)</label>
+                                <input type="number" th:field="*{precio}" class="form-control" placeholder="2500">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Horarios</label>
+                                <input type="text" th:field="*{horarios}" class="form-control" placeholder="14:00,17:30,21:00">
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" th:field="*{esEstreno}" class="form-check-input" id="estreno">
+                                <label class="form-check-label" for="estreno">Es Estreno</label>
+                            </div>
+                            <button type="submit" class="btn-admin-primary w-100">+ Guardar Película</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- LISTADO DE PELÍCULAS -->
+                <div class="col-lg-8">
+                    <div class="admin-card-title px-2 mb-3">Películas Registradas</div>
+                    <div class="row g-3">
+                        <div class="col-md-6" th:each="p : ${peliculas}">
+                            <div class="admin-pelicula-card">
+                                <div class="admin-movie-header">
+                                    <div class="admin-movie-title" th:text="${p.titulo}"></div>
+                                    <span class="admin-clasificacion-badge" th:text="${p.clasificacion}"></span>
+                                </div>
+                                <div class="admin-movie-genre" th:text="${p.genero}"></div>
+                                <div class="admin-meta-row">
+                                    <span>Duración:</span>
+                                    <span th:text="${p.duracion} + ' min'"></span>
+                                </div>
+                                <div class="admin-meta-row">
+                                    <span>Precio:</span>
+                                    <span>₦<span th:text="${p.precio}"></span></span>
+                                </div>
+                                <div class="mt-2 mb-3">
+                                    <span th:each="h : ${p.horarios.split(',')}" class="admin-horario-pill" th:text="${h.trim()}"></span>
+                                </div>
+                                <a th:href="@{/admin/peliculas/eliminar/{id}(id=${p.id})}"
+                                   class="btn btn-sm btn-outline-danger w-100"
+                                   onclick="return confirm('¿Eliminar esta película?')">Eliminar</a>
+                            </div>
+                        </div>
+                        <div th:if="${#lists.isEmpty(peliculas)}" class="col-12">
+                            <p class="text-center text-muted py-4">Sin películas registradas.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

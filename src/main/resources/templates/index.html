@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cine La Estación</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/amsuno.css}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="#inicio">
+            <span class="brand-icon">⊞</span>
+            Cine <span class="brand-color ms-1">La Estación</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="#servicios">Servicios</a></li>
+                <li class="nav-item"><a class="nav-link" href="#quienes-somos">Quiénes Somos</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contactenos">Contáctenos</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-phone">☏ 08064206913</span>
+                <a href="/login" class="btn-ingresar">Ingresar</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+    <div class="ticker-content">
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> EL SEMILLERO</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> GUARDIANES DE LA GALAXIA VOL. 4</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> DUNE: PARTE TRES</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> AVENTURA EN EL BOSQUE MÁGICO</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> AVATAR 3: EL SEMILLERO</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> GUARDIANES DE LA GALAXIA VOL. 4</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> EL SEMILLERO</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> GUARDIANES DE LA GALAXIA VOL. 4</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> DUNE: PARTE TRES</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> AVENTURA EN EL BOSQUE MÁGICO</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> AVATAR 3: EL SEMILLERO</span>
+        <span class="ticker-item"><span class="ticker-icon">⊞</span> GUARDIANES DE LA GALAXIA VOL. 4</span>
+    </div>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="inicio">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <p class="hero-subtitle">La mejor experiencia cinematográfica</p>
+                <h1>La Mejor Experiencia de Cine en <span class="hero-accent">Abuja</span></h1>
+                <p>Disfruta de los últimos estrenos en nuestras modernas salas de cine. Cine La Estación te ofrece la mejor experiencia cinematográfica con sonido envolvente, pantallas gigantes y comodidad inigualable.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="#contactenos" class="btn-hero-primary">Comprar Entradas</a>
+                    <a href="#servicios" class="btn-hero-secondary">Ver Cartelera</a>
+                </div>
+                <div class="hero-features">
+                    <div class="hero-feature">
+                        <span class="hero-feature-icon">⊞</span>
+                        <span>Últimos Estrenos</span>
+                    </div>
+                    <div class="hero-feature">
+                        <span class="hero-feature-icon">⬡</span>
+                        <span>Snacks Deliciosos</span>
+                    </div>
+                    <div class="hero-feature">
+                        <span class="hero-feature-icon">◈</span>
+                        <span>Reservas Online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1722321974528-ec8eaf725777?w=1080"
+                     alt="Salas de cine" class="hero-img">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CARTELERA -->
+<section class="py-5" style="background:#fff;">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="section-heading">Cartelera de la Semana</h2>
+            <p class="section-sub">Descubre los últimos estrenos y las películas más populares. ¡Reserva tus entradas ahora!</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="movie-card">
+                    <div class="movie-poster poster-1">
+                        <img src="https://images.unsplash.com/photo-1761948245185-fc300ad20316?w=400" alt="Avatar 3">
+                        <span class="badge-estreno">ESTRENO</span>
+                    </div>
+                    <div class="movie-body">
+                        <div class="movie-title">Avatar 3: El Semillero</div>
+                        <div class="movie-genre">Ciencia Ficción</div>
+                        <div class="movie-meta">
+                            <span>⏱ 192 min</span>
+                            <span class="rating">★ 4.8</span>
+                        </div>
+                        <span class="badge-clasificacion">PG-13</span>
+                        <div class="horarios-label">Horarios:</div>
+                        <div>
+                            <span class="horario-btn">14:00</span>
+                            <span class="horario-btn">17:30</span>
+                            <span class="horario-btn">21:00</span>
+                        </div>
+                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="movie-card">
+                    <div class="movie-poster poster-2">
+                        <img src="https://images.unsplash.com/photo-1765510296004-614b6cc204da?w=400" alt="Guardianes de la Galaxia Vol. 4">
+                        <span class="badge-estreno">ESTRENO</span>
+                    </div>
+                    <div class="movie-body">
+                        <div class="movie-title">Guardianes de la Galaxia Vol. 4</div>
+                        <div class="movie-genre">Acción / Aventura</div>
+                        <div class="movie-meta">
+                            <span>⏱ 150 min</span>
+                            <span class="rating">★ 4.7</span>
+                        </div>
+                        <span class="badge-clasificacion">PG-13</span>
+                        <div class="horarios-label">Horarios:</div>
+                        <div>
+                            <span class="horario-btn">13:00</span>
+                            <span class="horario-btn">16:00</span>
+                            <span class="horario-btn">19:00</span>
+                            <span class="horario-btn">22:00</span>
+                        </div>
+                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="movie-card">
+                    <div class="movie-poster poster-3">
+                        <img src="https://images.unsplash.com/photo-1773353681034-3736f0fde648?w=400" alt="Aventura en el Bosque Mágico">
+                    </div>
+                    <div class="movie-body">
+                        <div class="movie-title">Aventura en el Bosque Mágico</div>
+                        <div class="movie-genre">Animación / Familia</div>
+                        <div class="movie-meta">
+                            <span>⏱ 105 min</span>
+                            <span class="rating">★ 4.6</span>
+                        </div>
+                        <span class="badge-clasificacion">G</span>
+                        <div class="horarios-label">Horarios:</div>
+                        <div>
+                            <span class="horario-btn">12:00</span>
+                            <span class="horario-btn">14:30</span>
+                            <span class="horario-btn">17:00</span>
+                        </div>
+                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="movie-card">
+                    <div class="movie-poster poster-4">
+                        <img src="https://images.unsplash.com/photo-1759230766134-e3ff1c27d20e?w=400" alt="Dune: Parte Tres">
+                        <span class="badge-estreno">ESTRENO</span>
+                    </div>
+                    <div class="movie-body">
+                        <div class="movie-title">Dune: Parte Tres</div>
+                        <div class="movie-genre">Ciencia Ficción / Drama</div>
+                        <div class="movie-meta">
+                            <span>⏱ 165 min</span>
+                            <span class="rating">★ 4.9</span>
+                        </div>
+                        <span class="badge-clasificacion">PG-13</span>
+                        <div class="horarios-label">Horarios:</div>
+                        <div>
+                            <span class="horario-btn">15:00</span>
+                            <span class="horario-btn">18:30</span>
+                            <span class="horario-btn">22:00</span>
+                        </div>
+                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="#servicios" class="btn-mas-info d-inline-block px-5" style="width:auto;">Ver Cartelera Completa</a>
+        </div>
+    </div>
+</section>
+
+<!-- PROMO SECTION -->
+<section class="promo-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="promo-badge">⊞ ¡Oferta Especial!</div>
+                <h2>¡Martes de Descuento!</h2>
+                <p>Todos los martes disfruta de un <strong>50% de descuento</strong> en todas las entradas. Además, combos de snacks con precios especiales.</p>
+                <div class="d-flex gap-3 flex-wrap mb-4">
+                    <a href="#servicios" class="btn-promo-outline">⊞ Ver Promociones</a>
+                    <a href="#contactenos" class="btn-promo-white">Reservar Ahora</a>
+                </div>
+                <div class="promo-stats">
+                    <div class="promo-stat">
+                        <strong>50%</strong>
+                        <span>Descuento</span>
+                    </div>
+                    <div class="promo-stat">
+                        <strong>2x1</strong>
+                        <span>En Combos</span>
+                    </div>
+                    <div class="promo-stat">
+                        <strong>VIP</strong>
+                        <span>Gratis 1 Mes</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1764689668473-b834a1a575e7?w=800" alt="Martes de Descuento" class="section-img">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICIOS -->
+<section class="services-section" id="servicios">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-heading">Nuestros Servicios</h2>
+            <p class="section-sub">Todo lo que necesitas para una experiencia cinematográfica perfecta</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon-wrap">⊞</div>
+                    <h5>Proyecciones 3D</h5>
+                    <p>Experimenta el cine en tres dimensiones con nuestra tecnología de última generación.</p>
+                    <ul class="service-checklist">
+                        <li>Pantallas IMAX</li>
+                        <li>Audio Dolby Atmos</li>
+                        <li>Gafas 3D Premium</li>
+                        <li>Asientos Reclinables</li>
+                    </ul>
+                    <a href="#" class="btn-mas-info">Más Información</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon-wrap">⬡</div>
+                    <h5>Snack Bar</h5>
+                    <p>Deliciosos snacks y bebidas para completar tu experiencia cinematográfica.</p>
+                    <ul class="service-checklist">
+                        <li>Palomitas Gourmet</li>
+                        <li>Bebidas Variadas</li>
+                        <li>Combos Familiares</li>
+                        <li>Dulces y Nachos</li>
+                    </ul>
+                    <a href="#" class="btn-mas-info">Más Información</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon-wrap">👥</div>
+                    <h5>Eventos Privados</h5>
+                    <p>Alquila nuestras salas para eventos corporativos, cumpleaños o celebraciones especiales.</p>
+                    <ul class="service-checklist">
+                        <li>Salas Privadas</li>
+                        <li>Catering Personalizado</li>
+                        <li>Proyecciones Privadas</li>
+                        <li>Eventos Corporativos</li>
+                    </ul>
+                    <a href="#" class="btn-mas-info">Más Información</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon-wrap">◈</div>
+                    <h5>Reservas Online</h5>
+                    <p>Compra tus entradas desde la comodidad de tu casa y evita las filas.</p>
+                    <ul class="service-checklist">
+                        <li>Compra Anticipada</li>
+                        <li>Selección de Asientos</li>
+                        <li>Pago Seguro</li>
+                        <li>Confirmación Inmediata</li>
+                    </ul>
+                    <a href="#contactenos" class="btn-mas-info">Más Información</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon-wrap">📅</div>
+                    <h5>Estrenos Exclusivos</h5>
+                    <p>Sé el primero en ver los últimos estrenos de Hollywood y cine internacional.</p>
+                    <ul class="service-checklist">
+                        <li>Pre-Estrenos</li>
+                        <li>Maratones Temáticos</li>
+                        <li>Cine de Arte</li>
+                        <li>Festivales Especiales</li>
+                    </ul>
+                    <a href="#contactenos" class="btn-mas-info">Más Información</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div class="service-icon-wrap">✓</div>
+                    <h5>Programas VIP</h5>
+                    <p>Membresías y descuentos especiales para nuestros clientes más frecuentes.</p>
+                    <ul class="service-checklist">
+                        <li>Descuentos Semanales</li>
+                        <li>Puntos de Recompensa</li>
+                        <li>Salas VIP</li>
+                        <li>Prioridad en Reservas</li>
+                    </ul>
+                    <a href="#" class="btn-mas-info">Más Información</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SOBRE NOSOTROS -->
+<section class="about-section" id="quienes-somos" style="background:#f8f9fa;">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2>Sobre Cine La Estación</h2>
+                <p>Durante más de <span class="hl">8 años</span>, Cine La Estación ha sido el destino favorito de entretenimiento en Abuja. Nos enorgullecemos de ofrecer la <span class="hl">mejor experiencia cinematográfica</span> con tecnología de punta, comodidad excepcional y un servicio al cliente inigualable.</p>
+                <p>Nuestras modernas instalaciones cuentan con <span class="hl">5 salas</span> equipadas con las últimas tecnologías en proyección y sonido. Ya sea que vengas a disfrutar de un estreno de Hollywood, una película de arte o un evento especial, estamos comprometidos a brindarte momentos inolvidables.</p>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-num">10,000+</div>
+                        <div class="stat-lbl">Clientes Felices</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-num">8+</div>
+                        <div class="stat-lbl">Años de Experiencia</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon">⊞</div>
+                        <div class="stat-num">5</div>
+                        <div class="stat-lbl">Salas de Cine</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-num">Abuja</div>
+                        <div class="stat-lbl">Mejor Ubicación</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1768582870566-d1ea815a7545?w=800" alt="Sobre Cine La Estación" class="section-img">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section class="py-5" style="background:#fff;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-heading">Lo Que Dicen Nuestros Clientes</h2>
+            <p class="section-sub">No solo confíes en nuestra palabra. Descubre lo que nuestros clientes satisfechos de Abuja dicen sobre su experiencia en Cine La Estación.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">❝❞</div>
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"¡La mejor experiencia cinematográfica de Abuja! Las salas son cómodas, el sonido es increíble y las palomitas están deliciosas. Cine La Estación es mi lugar favorito para ver películas."</p>
+                    <div class="testimonial-author">Carlos Mendoza</div>
+                    <div class="testimonial-location">Maitama, Abuja</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">❝❞</div>
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"Celebramos el cumpleaños de mi hijo aquí y fue espectacular. El personal fue muy atento y los niños disfrutaron muchísimo de la película y los snacks. ¡Totalmente recomendado!"</p>
+                    <div class="testimonial-author">Amara Obi</div>
+                    <div class="testimonial-location">Wuse II, Abuja</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">❝❞</div>
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"La tecnología 3D IMAX es impresionante. Ver películas aquí es una experiencia totalmente diferente. Las instalaciones están siempre limpias y el servicio es excelente."</p>
+                    <div class="testimonial-author">José Rodríguez</div>
+                    <div class="testimonial-location">Garki, Abuja</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">❝❞</div>
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">"Me encanta la facilidad de reservar entradas online y seleccionar los asientos. El sistema VIP vale totalmente la pena. Cine La Estación es simplemente el mejor cine de la ciudad."</p>
+                    <div class="testimonial-author">Fatima Ibrahim</div>
+                    <div class="testimonial-location">Asokoro, Abuja</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACTENOS -->
+<section id="contactenos" class="py-5" style="background:#f8f9fa;">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-heading">Contáctenos</h2>
+            <p class="section-sub">¿Listo para disfrutar del mejor cine? Contáctanos hoy para reservar tus entradas o eventos especiales.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">☏</div>
+                    <div>
+                        <div class="contact-info-title">Teléfono</div>
+                        <div class="contact-info-value">08064206913</div>
+                        <div class="contact-info-sub">Línea de atención al cliente</div>
+                    </div>
+                </div>
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">✉</div>
+                    <div>
+                        <div class="contact-info-title">Email</div>
+                        <div class="contact-info-value">info@cinelaestacion.com</div>
+                        <div class="contact-info-sub">Respondemos en 24 horas</div>
+                    </div>
+                </div>
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">📍</div>
+                    <div>
+                        <div class="contact-info-title">Dirección</div>
+                        <div class="contact-info-value">107 Gbagalape, Abuja 900103</div>
+                        <div class="contact-info-sub">Federal Capital Territory</div>
+                    </div>
+                </div>
+                <div class="contact-info-card">
+                    <div class="contact-info-icon">🕐</div>
+                    <div>
+                        <div class="contact-info-title">Horarios</div>
+                        <div class="contact-info-value">Lun - Jue: 2:00 PM - 11:00 PM</div>
+                        <div class="contact-info-value">Vie - Dom: 12:00 PM - 12:00 AM</div>
+                        <div class="contact-info-sub">Festivos: Horario especial</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="contact-form-card">
+                    <div class="contact-form-title">Envíanos un Mensaje</div>
+                    <p class="contact-form-sub">Completa el formulario y nos pondremos en contacto contigo para confirmar tu reserva o responder tus consultas.</p>
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nombre</label>
+                                <input type="text" class="form-control" placeholder="Ingresa tu nombre">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Apellido</label>
+                                <input type="text" class="form-control" placeholder="Ingresa tu apellido">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email</label>
+                                <input type="email" class="form-control" placeholder="tu@email.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Teléfono</label>
+                                <input type="text" class="form-control" placeholder="08012345678">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Asunto</label>
+                                <select class="form-select">
+                                    <option value="">Selecciona un asunto</option>
+                                    <option>Reserva de Entradas</option>
+                                    <option>Evento Privado</option>
+                                    <option>Información General</option>
+                                    <option>Reclamos y Sugerencias</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Mensaje</label>
+                                <textarea class="form-control" rows="5" placeholder="Cuéntanos cómo podemos ayudarte..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn-primary-cinema w-100">Enviar Mensaje</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="footer-brand">⊞ Cine <span>La Estación</span></div>
+                <p style="font-size:0.88rem;">Tu destino de entretenimiento favorito en Abuja. Ofrecemos la mejor experiencia cinematográfica con tecnología de última generación y un servicio excepcional.</p>
+                <p style="font-size:0.85rem;">☏ 08064206913</p>
+                <p style="font-size:0.85rem;">✉ info@cinelaestacion.com</p>
+                <p style="font-size:0.85rem;">📍 107 Gbagalape, Abuja 900103, FCT</p>
+            </div>
+            <div class="col-lg-4">
+                <h6>Servicios</h6>
+                <a href="#servicios">Proyecciones 3D</a>
+                <a href="#servicios">Snack Bar</a>
+                <a href="#servicios">Eventos Privados</a>
+                <a href="#contactenos">Reservas Online</a>
+                <a href="#servicios">Estrenos Exclusivos</a>
+                <a href="#servicios">Programas VIP</a>
+            </div>
+            <div class="col-lg-2">
+                <h6>Enlaces Rápidos</h6>
+                <a href="#inicio">Inicio</a>
+                <a href="#quienes-somos">Quiénes Somos</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#contactenos">Contáctenos</a>
+                <h6 class="mt-3">Síguenos</h6>
+                <div class="d-flex gap-2">
+                    <a href="#" style="font-size:1.1rem;">f</a>
+                    <a href="#" style="font-size:1.1rem;">IG</a>
+                    <a href="#" style="font-size:1.1rem;">𝕏</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom d-flex justify-content-between flex-wrap gap-2">
+            <span>© 2026 Cine La Estación. Todos los derechos reservados.</span>
+            <div class="d-flex gap-3">
+                <a href="#" style="color:rgba(255,255,255,0.45);font-size:0.82rem;text-decoration:none;">Política de Privacidad</a>
+                <a href="#" style="color:rgba(255,255,255,0.45);font-size:0.82rem;text-decoration:none;">Términos de Servicio</a>
+                <a href="#inicio" style="color:rgba(255,255,255,0.45);font-size:0.82rem;text-decoration:none;">Cartelera</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
