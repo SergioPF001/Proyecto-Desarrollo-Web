@@ -7,11 +7,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Map;
+
 @Controller
 public class LoginController {
 
-    private static final String USUARIO_ADMIN   = "admin_cine";
-    private static final String CONTRASENA_ADMIN = "LaEstacion2026!";
+    private static final Map<String, String[]> USUARIOS = Map.of(
+        "admin_cine",  new String[]{"LaEstacion2026!", "ADMIN",  "Administrador"},
+        "cajero_cine", new String[]{"Cajero2026!",     "CAJERO", "Cajero"}
+    );
 
     @GetMapping("/login")
     public String mostrarLogin(HttpSession sesion) {
@@ -26,8 +30,12 @@ public class LoginController {
                                 @RequestParam String contrasena,
                                 HttpSession sesion,
                                 Model modelo) {
-        if (USUARIO_ADMIN.equals(usuario) && CONTRASENA_ADMIN.equals(contrasena)) {
-            sesion.setAttribute("loggedIn", true);
+        String[] datos = USUARIOS.get(usuario);
+        if (datos != null && datos[0].equals(contrasena)) {
+            sesion.setAttribute("loggedIn",   true);
+            sesion.setAttribute("userRole",   datos[1]);
+            sesion.setAttribute("userName",   usuario);
+            sesion.setAttribute("userNombre", datos[2]);
             return "redirect:/admin/dashboard";
         }
         modelo.addAttribute("error", "Usuario o contraseña incorrectos.");

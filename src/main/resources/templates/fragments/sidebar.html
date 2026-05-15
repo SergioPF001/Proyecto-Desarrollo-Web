@@ -26,22 +26,24 @@
             <a href="/admin/snacks" th:class="${activo == 'snacks'} ? 'admin-nav-item activo' : 'admin-nav-item'">
                 <span class="admin-nav-icon">⬡</span> Snacks
             </a>
-            <a href="/admin/estadisticas" th:class="${activo == 'estadisticas'} ? 'admin-nav-item activo' : 'admin-nav-item'">
-                <span class="admin-nav-icon">📊</span> Estadísticas
-            </a>
-            <a href="/admin/graficos" th:class="${activo == 'graficos'} ? 'admin-nav-item activo' : 'admin-nav-item'">
-                <span class="admin-nav-icon">📈</span> Gráficos
-            </a>
-            <a href="/admin/configuracion" th:class="${activo == 'configuracion'} ? 'admin-nav-item activo' : 'admin-nav-item'">
-                <span class="admin-nav-icon">⚙</span> Configuración
-            </a>
+            <th:block th:if="${session.userRole == 'ADMIN'}">
+                <a href="/admin/estadisticas" th:class="${activo == 'estadisticas'} ? 'admin-nav-item activo' : 'admin-nav-item'">
+                    <span class="admin-nav-icon">📊</span> Estadísticas
+                </a>
+                <a href="/admin/graficos" th:class="${activo == 'graficos'} ? 'admin-nav-item activo' : 'admin-nav-item'">
+                    <span class="admin-nav-icon">📈</span> Gráficos
+                </a>
+                <a href="/admin/configuracion" th:class="${activo == 'configuracion'} ? 'admin-nav-item activo' : 'admin-nav-item'">
+                    <span class="admin-nav-icon">⚙</span> Configuración
+                </a>
+            </th:block>
         </nav>
         <div class="admin-sidebar-footer">
             <div class="admin-user">
-                <div class="admin-user-avatar">A</div>
+                <div class="admin-user-avatar" th:text="${#strings.substring(session.userNombre, 0, 1)}">A</div>
                 <div>
-                    <div class="admin-user-name">Administrador</div>
-                    <div class="admin-user-role">admin_cine</div>
+                    <div class="admin-user-name" th:text="${session.userNombre}">Administrador</div>
+                    <div class="admin-user-role" th:text="${session.userName}">admin_cine</div>
                 </div>
             </div>
             <a href="/admin/cerrar-sesion" class="admin-logout">↩ Cerrar Sesión</a>

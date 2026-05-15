@@ -38,6 +38,10 @@ public class AdminController {
         return sesion.getAttribute("loggedIn") == null;
     }
 
+    private boolean sinPermiso(HttpSession sesion) {
+        return !"ADMIN".equals(sesion.getAttribute("userRole"));
+    }
+
     @GetMapping
     public String inicio(HttpSession sesion) {
         if (sinSesion(sesion)) return "redirect:/login";
@@ -201,7 +205,8 @@ public class AdminController {
 
     @GetMapping("/estadisticas")
     public String estadisticas(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
+        if (sinSesion(sesion))  return "redirect:/login";
+        if (sinPermiso(sesion)) return "redirect:/admin/dashboard?accesoDenegado=true";
         modelo.addAttribute("totalClientes",  clienteService.listar().size());
         modelo.addAttribute("totalPeliculas", peliculaService.listar().size());
         modelo.addAttribute("totalReservas",  reservaService.listar().size());
@@ -212,7 +217,8 @@ public class AdminController {
 
     @GetMapping("/graficos")
     public String graficos(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
+        if (sinSesion(sesion))  return "redirect:/login";
+        if (sinPermiso(sesion)) return "redirect:/admin/dashboard?accesoDenegado=true";
         modelo.addAttribute("totalClientes",  clienteService.listar().size());
         modelo.addAttribute("totalPeliculas", peliculaService.listar().size());
         modelo.addAttribute("totalReservas",  reservaService.listar().size());
@@ -224,7 +230,8 @@ public class AdminController {
 
     @GetMapping("/configuracion")
     public String configuracion(HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+        if (sinSesion(sesion))  return "redirect:/login";
+        if (sinPermiso(sesion)) return "redirect:/admin/dashboard?accesoDenegado=true";
         return "admin/configuracion";
     }
 
