@@ -1,8 +1,300 @@
-# Explicación del Proyecto — Cine La Estación
+# Explicación Técnica Detallada — Cine La Estación
 
-## ¿Qué es este proyecto?
+Este documento explica cada clase Java del proyecto, su propósito, por qué existe, qué hace internamente y por qué el código está escrito de esa manera.
 
-Es una aplicación web para gestionar un cine llamado **Cine La Estación**, ubicado en Abuja. Tiene dos partes:
+---
+
+## 1. PUNTO DE ENTRADA — `CineApp.java`
+
+Es la clase más corta del proyecto (12 líneas) y la más importante: es el punto de entrada de toda la aplicación.
+
+**¿Qué hace `@SpringBootApplication`?**
+Esta anotación agrupa tres anotaciones en una:
+- `@SpringBootConfiguration` — declara esta clase como fuente de configuración.
+- `@EnableAutoConfiguration` — le dice a Spring Boot que configure automáticamente todo lo que encuentre en el classpath (detecta MySQL, JPA, Thymeleaf y los configura sin código manual).
+- `@ComponentScan` — escanea todos los paquetes bajo `com.amsuno` buscando `@Controller`, `@Service`, `@Repository`, `@Component`, etc., y los registra como beans gestionados.
+
+**¿Por qué solo tiene `main`?**
+Spring Boot sigue el principio de "convención sobre configuración". Con una sola anotación el framework hace todo el trabajo de arranque: crea el servidor Tomcat embebido, conecta con MySQL, inicializa Hibernate (JPA), registra los controladores y levanta el sistema en el puerto 8080.
+
+---
+
+## 2. INICIALIZACIÓN DE DATOS — `DataLoader.java`
+
+Implementa `CommandLineRunner`, una interfaz de Spring Boot que ejecuta automáticamente el método `run()` justo después de que la aplicación arranca.
+
+**¿Por qué existe esta clase?** La base de datos empieza vacía. Sin datos de demostración sería imposible probar el sistema. Esta clase crea salas, asientos, películas, clientes y reservas de ejemplo automáticamente.
+
+**Flujo de ejecución del método `run()`:**
+1. Siempre llama a `inicializarSalas()`
+2. Si ya hay clientes: llama a `repararAsientosDemoData()` y termina
+3. Si no hay clientes: llama a `inicializarDemostracion()` (carga completa)
+
+**`inicializarSalas()`** — Crea dos salas si no existen:
+- Sala Principal: 5 filas × 8 columnas = 40 asientos. Filas C y D "preferencial", el resto "normal".
+- Sala VIP: 4 filas × 6 columnas = 24 asientos. Todos "vip".
+
+**`inicializarDemostracion()`** — Solo se ejecuta una vez (base vacía). Crea 3 clientes, 4 películas y 3 reservas completas con sus registros en `reserva_asiento`.
+
+**`repararAsientosDemoData()`** — Si el sistema ya tiene datos pero alguna reserva le falta registros en `reserva_asiento` (migración incompleta), los regenera automáticamente.
+
+---
+
+## 3. PROCEDIMIENTOS ALMACENADOS — `ProcedimientosLoader.java`
+
+`@Component` con `@EventListener(ApplicationReadyEvent.class)`. Su método `crearProcedimientos()` se ejecuta cuando Spring Boot termina de arrancar completamente.
+
+**¿Por qué se re-crean los procedimientos en cada arranque?**
+Los procedimientos almacenados viven en MySQL, no en Java. Si se modifica la lógica en el código Java y no se re-crea en la base de datos, el sistema usaría la versión antigua. Con `DROP PROCEDURE IF EXISTS` + `CREATE PROCEDURE` en cada arranque, MySQL siempre tiene la versión actualizada sin scripts SQL manuales.
+
+### `sp_AsientosDisponibles(p_pelicula_id, p_fecha)`
+
+Devuelve todos los asientos de la sala de una película indicando si están ocupados o disponibles para esa fecha.
+
+**¿Por qué como procedimiento y no como consulta Java?** La consulta necesita 4 tablas: pelicula → sala → asiento → reserva_asiento → reserva. El estado de cada asiento depende de una subconsulta `EXISTS` que verifica reservas activas. Esta lógica es más eficiente en el motor SQL que trayendo todos los datos a Java — MySQL tiene acceso directo a los índices y puede optimizar internamente.
+
+**Lógica:** Para cada asiento de la sala, ¿existe alguna reserva activa (no 'Cancelada') que incluya este asiento para esta película y fecha? SÍ → 'ocupado', NO → 'disponible'.
+
+### `sp_CrearReserva(..., OUT p_reserva_id)`
+
+Inserta una fila en `reserva` y devuelve el ID generado.
+
+**¿Por qué parámetro OUT?** Con el parámetro `OUT`, MySQL usa `LAST_INSERT_ID()` para capturar el ID de la fila recién insertada. Esto garantiza que incluso con múltiples usuarios creando reservas simultáneamente, cada uno recibe el ID correcto de su propia reserva. En Java se llama con `CallableStatement` registrando el parámetro de salida como `Types.BIGINT`.
+
+### `sp_CancelarReserva(p_reserva_id)`
+
+Elimina los registros de `reserva_asiento` y cambia el estado de la reserva a 'Cancelada'.
+
+**¿Por qué dos operaciones en un procedimiento?** Si solo se actualiza el estado, los asientos seguirán apareciendo como ocupados. Si solo se eliminan los registros de `reserva_asiento`, la reserva queda inconsistente. El procedimiento garantiza que ambas operaciones ocurran juntas.
+
+### `sp_ResumenSala(p_sala_id, p_fecha)`
+
+Calcula cuántos asientos totales, ocupados y disponibles tiene una sala para una fecha dada. Creado para futuras métricas del dashboard.
+
+---
+
+## 4. LOS MODELOS (ENTIDADES) — 7 clases en `model/`
+
+Los modelos son clases Java que representan tablas de la base de datos. Hibernate crea las tablas automáticamente gracias a `ddl-auto=update`.
+
+### `Sala.java`
+`Tabla: sala | Campos: id, nombre, filas, columnas`
+
+Representa una sala física. No tiene referencia hacia sus asientos ni películas — esas entidades apuntan hacia Sala, no al revés. Sala es independiente. `GenerationType.IDENTITY` usa AUTO_INCREMENT de MySQL, delegando la generación del ID al motor de base de datos.
+
+### `Asiento.java`
+`Tabla: asiento | Campos: id, sala_id (FK), fila, numero, tipo`
+
+Representa un asiento físico inamovible. **No tiene campo "estado"** — el estado de ocupación depende de la fecha y la película, no es un atributo fijo. Lo calcula `sp_AsientosDisponibles` dinámicamente. `@ManyToOne` + `@JoinColumn(name="sala_id")` crea la clave foránea hacia Sala.
+
+### `Pelicula.java`
+`Tabla: pelicula | Campos: id, titulo, genero, duracion, clasificacion, precio, esEstreno, horarios, sala_id (FK)`
+
+El campo `horarios` almacena todos los horarios como string separado por comas ("14:00,17:30,21:00"). Simplifica el modelo evitando una tabla separada. Cuando se necesitan los horarios individuales se hace `horarios.split(",")`.
+
+### `Cliente.java`
+`Tabla: cliente | Campos: id, nombre, email, telefono`
+
+Sin contraseña. Los clientes se identifican por email. Si ya existe uno con ese email al hacer una reserva, se reutiliza; si no, se crea automáticamente.
+
+### `Reserva.java`
+`Tabla: reserva | Campos: id, cliente_id (FK), pelicula_id (FK), fecha, asientos, total, estado`
+
+Entidad central del sistema. Une un cliente con una película en una fecha y hora.
+
+`@OneToMany(cascade = CascadeType.REMOVE)` — Al eliminar una Reserva, JPA elimina automáticamente sus registros en `reserva_asiento`. Evita registros huérfanos.
+
+El campo `asientos` (int) guarda cuántos asientos se reservaron (el detalle de cuáles está en `reserva_asiento`). Permite consultar el resumen rápido sin JOIN extra.
+
+### `ReservaAsiento.java`
+`Tabla: reserva_asiento | Campos: id, reserva_id (FK), asiento_id (FK)`
+
+Tabla intermedia que resuelve la relación muchos-a-muchos entre Reserva y Asiento.
+
+**¿Por qué no usar `@ManyToMany` directamente?** `@ManyToMany` crea la tabla intermedia automáticamente, pero esa tabla no tiene ID propio ni se puede consultar directamente con JPQL. Al crear `ReservaAsiento` como entidad explícita, se pueden escribir consultas propias sobre ella (como `findEtiquetasByReservaId`).
+
+### `Snack.java`
+`Tabla: snack | Campos: id, nombre, categoria, precio, stock, descripcion`
+
+Entidad independiente sin relaciones con otras tablas. Gestión del snack bar completamente separada del flujo de reservas.
+
+---
+
+## 5. LOS REPOSITORIOS — 7 interfaces en `repository/`
+
+Interfaces que extienden `JpaRepository`. Spring Data JPA genera la implementación en tiempo de ejecución. El desarrollador no escribe SQL ni código de conexión.
+
+`JpaRepository` provee automáticamente: `findAll()`, `findById()`, `save()`, `deleteById()`, `count()`.
+
+**¿Por qué 7 repositorios?** Uno por cada entidad. No se puede buscar un asiento usando el repositorio de reservas.
+
+**`ClienteRepository`** — Añade `findByEmail(String email)`. Spring genera `SELECT * FROM cliente WHERE email = ?` solo por el nombre del método (query method). Se usa en `PublicController` para reutilizar clientes por email.
+
+**`ReservaAsientoRepository`** — El más especializado. Añade:
+- `findByReservaId` y `deleteByReservaId` — query methods automáticos
+- `findEtiquetasByReservaId` con `@Query` JPQL — construye etiquetas "A1", "B5" concatenando fila+numero ordenadas, para mostrar "A1, A2, B5" en la tabla de reservas del admin
+
+**`AsientoRepository`** — Añade `findBySalaId(Long salaId)`. Usado en `DataLoader`.
+
+Los repositorios de `Pelicula`, `Sala`, `Reserva` y `Snack` solo extienden `JpaRepository` sin métodos adicionales.
+
+---
+
+## 6. LOS SERVICIOS — 6 clases en `service/`
+
+Contienen la lógica del negocio. Los controladores siempre pasan por el servicio, nunca acceden directamente al repositorio.
+
+**¿Por qué 6 servicios?** Uno por cada entidad principal. `AsientoService` está separado porque su lógica es la más compleja (procedimientos almacenados + múltiples repositorios).
+
+**`ClienteService.java`** — CRUD estándar: listar, agregar, buscar, eliminar.
+
+**`PeliculaService.java`** — CRUD más `listarGeneros()` que obtiene géneros distintos ordenados alfabéticamente. Usado en el filtro dropdown de reservas del admin.
+
+**`ReservaService.java`** — CRUD más `confirmar(id)` que cambia estado de Pendiente a Confirmada. Al eliminar, `CascadeType.REMOVE` borra también los `ReservaAsiento`.
+
+**`SalaService.java`** — Solo listar, buscar, agregar. Sin eliminar porque sería una operación destructiva en cascada (sala → asientos → películas → reservas).
+
+**`SnackService.java`** — CRUD completo estándar.
+
+**`AsientoService.java`** — El más complejo. Inyecta 4 dependencias:
+- `JdbcTemplate`: para procedimientos almacenados con SQL puro
+- `AsientoRepository`: buscar asientos por ID
+- `ReservaAsientoRepository`: guardar y consultar asientos de reserva
+- `ReservaRepository`: obtener objeto Reserva
+
+`asientosDisponibles(peliculaId, fecha)` — Llama a `sp_AsientosDisponibles`, devuelve `List<Map<String, Object>>` donde cada mapa es una fila SQL (id, fila, numero, tipo, estado). Estructura flexible que se pasa directamente a Thymeleaf.
+
+`crearReserva(...)` — Llama a `sp_CrearReserva` con `CallableStatement` de JDBC puro. Necesita `jdbc.execute((Connection con) -> {...})` para obtener la conexión raw y registrar el parámetro OUT.
+
+`guardarAsientosReserva(reservaId, asientoIds)` — Crea un `ReservaAsiento` por cada asiento seleccionado. `@Transactional` garantiza atomicidad: si falla al guardar alguno, todos los anteriores se deshacen.
+
+`etiquetasAsientos(reservaId)` — Obtiene etiquetas "A1, A2, B5" vía JPQL. Devuelve "-" si no hay asientos.
+
+---
+
+## 7. EL DTO — `ReservaDTO.java`
+
+Data Transfer Object: clase que transporta datos entre capas sin ser una entidad de base de datos.
+
+**¿Por qué existe si ya existe `Reserva`?** `Reserva` es una entidad JPA con lazy loading. Acceder a `reserva.cliente.nombre` puede disparar consultas SQL adicionales. Con 10 reservas en pantalla, podrían ejecutarse 30 consultas extras automáticamente.
+
+`ReservaDTO` aplana todo en una sola clase construida de una vez:
+- `clienteNombre`: extraído de la entidad Cliente
+- `peliculaTitulo`: extraído de la entidad Pelicula
+- `asientosDetalle`: "A1, A2, B5" — no existe en ninguna entidad, se calcula combinando `ReservaAsiento` + `Asiento`
+
+---
+
+## 8. LOS CONTROLADORES — 4 clases en `controller/`
+
+**`HomeController.java`** — Maneja `/`. Pasa a `index.html` la lista de películas y URLs de imágenes. Solo inyecta `PeliculaService` porque es el único dato dinámico de la página de inicio.
+
+**`LoginController.java`** — Credenciales hardcoded en un `Map` con dos usuarios fijos (admin y cajero). Al login exitoso guarda 4 atributos en la sesión HTTP: `loggedIn`, `userRole`, `userName`, `userNombre`. `sesion.invalidate()` elimina completamente la sesión al cerrar.
+
+**¿Por qué no Spring Security?** Añadiría complejidad (BCrypt, configuración de roles, CSRF) que va más allá del alcance del proyecto. La protección manual con sesiones HTTP es completamente funcional.
+
+**`AdminController.java`** — 18 métodos bajo `/admin/**`. Patrón de seguridad en todos:
+```
+if (sinSesion(sesion))  return "redirect:/login"       // todas las rutas
+if (sinPermiso(sesion)) return "redirect:/admin/dashboard" // solo rutas ADMIN
+```
+
+Métodos privados de utilidad: `crearDTO(r)` evita repetir la conversión Reserva→ReservaDTO. `parsearIds(ids)` convierte "12,15,18" en `List<Long>` para procesar la selección del mapa visual.
+
+**Tabla de rutas del AdminController:**
+
+| Ruta | Acceso | Acción |
+|---|---|---|
+| GET /admin/dashboard | Todos | KPIs y últimas reservas |
+| GET /admin/reservas | Todos | Lista con búsqueda y filtro |
+| GET /admin/asientos | Todos | Mapa visual de asientos |
+| POST /admin/reservas/nueva | Todos | Crea reserva con asientos |
+| GET /admin/reservas/confirmar/{id} | Todos | Cambia estado a Confirmada |
+| GET /admin/reservas/cancelar/{id} | Todos | Cancela reserva (libera asientos) |
+| GET /admin/reservas/eliminar/{id} | Todos | Elimina reserva definitivamente |
+| GET /admin/peliculas | Todos | Lista películas |
+| POST /admin/peliculas/agregar | Todos | Crea película nueva |
+| GET /admin/peliculas/eliminar/{id} | Todos | Elimina película |
+| GET /admin/clientes | Todos | Lista clientes con estadísticas |
+| POST /admin/clientes/agregar | Todos | Crea cliente nuevo |
+| GET /admin/clientes/eliminar/{id} | Todos | Elimina cliente |
+| GET /admin/snacks | Todos | Lista snacks |
+| POST /admin/snacks/agregar | Todos | Crea snack nuevo |
+| GET /admin/snacks/eliminar/{id} | Todos | Elimina snack |
+| GET /admin/estadisticas | Solo ADMIN | Estadísticas y gráficos |
+| GET /admin/graficos | Solo ADMIN | Gráficos adicionales |
+| GET /admin/configuracion | Solo ADMIN | Datos del cine |
+| GET /admin/cerrar-sesion | Todos | Invalida sesión |
+
+**`PublicController.java`** — 3 estados en una sola URL `/reservar` según parámetros:
+1. Sin params → grilla de películas
+2. `peliculaId` → detalles + selector fecha/horario
+3. `peliculaId` + `fecha` → datos personales + mapa de asientos
+
+POST: usa `clienteRepo.findByEmail(email).orElseGet(...)` para reutilizar o crear cliente automáticamente por email, sin que el usuario tenga que registrarse explícitamente.
+
+---
+
+## 9. RESTRICCIÓN DE THYMELEAF 3.1
+
+`th:onclick` con expresiones de string está bloqueado por seguridad (previene XSS). Solución usada en los mapas de asientos:
+
+```html
+<!-- INCORRECTO — lanza error en Thymeleaf 3.1 -->
+<div th:onclick="'toggleAsiento(' + ${asiento.id} + ')'">
+
+<!-- CORRECTO — data attributes + handler estático -->
+<div th:data-id="${asiento.id}"
+     th:data-precio="${pelicula.precio}"
+     onclick="handleSeat(this)">
+```
+
+JavaScript lee con `btn.dataset.id` y `btn.dataset.precio`. Lo mismo aplica para botones de horario: `th:data-horario` + `onclick="seleccionarHorario(this.dataset.horario)"`.
+
+---
+
+## 10. CONFIGURACIÓN — `application.properties`
+
+| Propiedad | Valor | Por qué |
+|---|---|---|
+| `server.port` | 8080 | Puerto estándar de desarrollo |
+| `ddl-auto` | update | Hibernate crea/actualiza tablas al arrancar sin borrar datos |
+| `show-sql` | false | El log era muy verboso con procedimientos almacenados |
+| `open-in-view` | false | Cierra la conexión BD antes de renderizar. Buena práctica de producción |
+| `allowPublicKeyRetrieval` | true | Necesario para autenticación `caching_sha2_password` de MySQL 8 |
+
+---
+
+## 11. SISTEMA DE ROLES — 3 niveles de seguridad
+
+**Nivel 1 — Al hacer login** (`LoginController`): Se guarda el rol en la sesión del navegador.
+
+**Nivel 2 — En el menú lateral** (`sidebar.html`): Los ítems de Estadísticas, Gráficos y Configuración solo se renderizan si `session.userRole == 'ADMIN'`. El Cajero directamente no los ve.
+
+**Nivel 3 — En las rutas del servidor** (`AdminController`): Si el Cajero intenta acceder a la URL directamente, el controlador verifica el rol con `sinPermiso()` y lo redirige al dashboard con mensaje de acceso denegado.
+
+| Sección | Administrador | Cajero |
+|---|---|---|
+| Dashboard, Reservas, Películas, Clientes, Snacks | Sí | Sí |
+| Estadísticas, Gráficos, Configuración | Sí | No |
+
+---
+
+## 12. RESUMEN COMPLETO DE CONTEOS
+
+| Capa | Cantidad | Clases / Archivos |
+|---|---|---|
+| Punto de entrada | 1 | CineApp |
+| Inicialización | 2 | DataLoader, ProcedimientosLoader |
+| Modelos / Entidades | 7 | Sala, Asiento, Pelicula, Cliente, Reserva, ReservaAsiento, Snack |
+| Repositorios | 7 | SalaRepository, AsientoRepository, PeliculaRepository, ClienteRepository, ReservaRepository, ReservaAsientoRepository, SnackRepository |
+| Servicios | 6 | SalaService, AsientoService, PeliculaService, ClienteService, ReservaService, SnackService |
+| Controladores | 4 | HomeController, LoginController, AdminController, PublicController |
+| DTOs | 1 | ReservaDTO |
+| **Total clases Java** | **28** | |
+| Procedimientos SQL | 4 | sp_AsientosDisponibles, sp_CrearReserva, sp_CancelarReserva, sp_ResumenSala |
+| Templates Thymeleaf | 13 | index, login, reservar, sidebar, dashboard, peliculas, clientes, reservas, asientos, snacks, estadisticas, graficos, configuracion |
+| Tablas en BD | 7 | sala, asiento, pelicula, cliente, reserva, reserva_asiento, snack |
 
 - **Sitio público** (`/`): La página principal que ven los clientes con la cartelera, servicios y contacto.
 - **Panel de administración** (`/admin/...`): Un panel interno al que solo pueden acceder usuarios con usuario y contraseña. Desde ahí se gestionan reservas, películas, clientes y snacks.

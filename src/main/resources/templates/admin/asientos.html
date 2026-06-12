@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selección de Asientos - Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='reservas')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Selección de Asientos</div>
+                <div class="admin-topbar-sub">Cine La Estación</div>
+            </div>
+            <a href="/admin/reservas" class="btn-ver-sitio">← Volver</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="row g-4">
+
+                <div class="col-lg-9">
+                    <div class="admin-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0" th:text="${pelicula.titulo}">Película</h6>
+                            <span class="text-muted" th:text="${fecha}">Fecha</span>
+                        </div>
+
+                        <form action="/admin/reservas/nueva" method="post" id="formReserva">
+                            <input type="hidden" name="clienteId"   th:value="${cliente.id}">
+                            <input type="hidden" name="peliculaId"  th:value="${pelicula.id}">
+                            <input type="hidden" name="fecha"       th:value="${fecha}">
+                            <input type="hidden" name="estado"      th:value="${estado}">
+                            <input type="hidden" name="asientoIds"  id="asientoIds" value="">
+
+                            <div class="mapa-sala-wrapper">
+                            <div class="pantalla-cine mb-2">PANTALLA</div>
+
+                            <div class="sala-contenedor">
+                                <div th:each="filaAsientos : ${filasConAsientos}" class="fila-asientos-2sec">
+                                    <span class="etiqueta-fila" th:text="${filaAsientos[0].fila}">A</span>
+
+                                    <div class="d-flex gap-1">
+                                        <div th:each="asiento, aStat : ${filaAsientos}"
+                                             th:if="${aStat.index < filaAsientos.size() / 2}"
+                                             th:id="'btn-' + ${asiento.id}"
+                                             th:class="'asiento-btn asiento-tipo-' + ${asiento.tipo} + (${asiento.estado == 'ocupado'} ? ' asiento-ocupado' : ' asiento-disponible')"
+                                             th:text="${asiento.numero}"
+                                             th:data-id="${asiento.id}"
+                                             th:data-precio="${pelicula.precio}"
+                                             onclick="handleSeat(this)">
+                                        </div>
+                                    </div>
+
+                                    <div class="pasillo-central"></div>
+
+                                    <div class="d-flex gap-1">
+                                        <div th:each="asiento, aStat : ${filaAsientos}"
+                                             th:if="${aStat.index >= filaAsientos.size() / 2}"
+                                             th:id="'btn-' + ${asiento.id}"
+                                             th:class="'asiento-btn asiento-tipo-' + ${asiento.tipo} + (${asiento.estado == 'ocupado'} ? ' asiento-ocupado' : ' asiento-disponible')"
+                                             th:text="${asiento.numero}"
+                                             th:data-id="${asiento.id}"
+                                             th:data-precio="${pelicula.precio}"
+                                             onclick="handleSeat(this)">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                        </form>
+
+                        <div class="leyenda-asientos mt-4 d-flex gap-4 flex-wrap">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="asiento-btn asiento-disponible asiento-tipo-normal" style="pointer-events:none;">1</div>
+                                <span class="small">Normal disponible</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="asiento-btn asiento-disponible asiento-tipo-preferencial" style="pointer-events:none;">1</div>
+                                <span class="small">Preferencial disponible</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="asiento-btn asiento-disponible asiento-tipo-vip" style="pointer-events:none;">1</div>
+                                <span class="small">VIP disponible</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="asiento-btn asiento-seleccionado" style="pointer-events:none;">1</div>
+                                <span class="small">Seleccionado</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="asiento-btn asiento-ocupado" style="pointer-events:none;">1</div>
+                                <span class="small">Ocupado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-3">Resumen de Reserva</h6>
+
+                        <div class="mb-3">
+                            <div class="text-muted small">Cliente</div>
+                            <div class="fw-semibold" th:text="${cliente.nombre}">Cliente</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Película</div>
+                            <div class="fw-semibold" th:text="${pelicula.titulo}">Película</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Sala</div>
+                            <div class="fw-semibold" th:text="${pelicula.sala.nombre}">Sala</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Función</div>
+                            <div class="fw-semibold" th:text="${fecha}">Fecha</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Estado</div>
+                            <div class="fw-semibold" th:text="${estado}">Pendiente</div>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-2">
+                            <div class="text-muted small">Asientos seleccionados</div>
+                            <div id="etiquetasSeleccionados" class="fw-semibold text-primary">Ninguno</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="text-muted small">Cantidad</div>
+                            <div id="cantidadSeleccionados" class="fw-semibold">0</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Total</div>
+                            <div id="totalPrecio" class="fw-bold fs-5">$0</div>
+                        </div>
+
+                        <button type="submit" form="formReserva" class="btn-admin-primary w-100"
+                                id="btnConfirmar" disabled>
+                            Confirmar Reserva
+                        </button>
+                        <a href="/admin/reservas" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script>
+    const seleccionados = new Map();
+
+    function handleSeat(btn) {
+        if (btn.classList.contains('asiento-ocupado')) return;
+        const id     = parseInt(btn.dataset.id);
+        const precio = parseFloat(btn.dataset.precio);
+        toggleAsiento(id, precio, btn);
+    }
+
+    function toggleAsiento(id, precio, btn) {
+        if (seleccionados.has(id)) {
+            seleccionados.delete(id);
+            btn.classList.remove('asiento-seleccionado');
+            btn.classList.add('asiento-disponible');
+        } else {
+            const etiqueta = btn.closest('.fila-asientos-2sec').querySelector('.etiqueta-fila').textContent + btn.textContent.trim();
+            seleccionados.set(id, etiqueta);
+            btn.classList.remove('asiento-disponible');
+            btn.classList.add('asiento-seleccionado');
+        }
+        actualizarResumen(precio);
+    }
+
+    function actualizarResumen(precio) {
+        const ids      = Array.from(seleccionados.keys());
+        const etiquetas = Array.from(seleccionados.values()).sort();
+        const cantidad  = ids.length;
+        const total     = cantidad * precio;
+
+        document.getElementById('asientoIds').value                   = ids.join(',');
+        document.getElementById('etiquetasSeleccionados').textContent = etiquetas.length ? etiquetas.join(', ') : 'Ninguno';
+        document.getElementById('cantidadSeleccionados').textContent  = cantidad;
+        document.getElementById('totalPrecio').textContent            = '$' + total.toLocaleString();
+        document.getElementById('btnConfirmar').disabled              = cantidad === 0;
+    }
+</script>
+</body>
+</html>

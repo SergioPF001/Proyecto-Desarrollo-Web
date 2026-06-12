@@ -61,7 +61,7 @@
                 <h1>La Mejor Experiencia de Cine en <span class="hero-accent">Abuja</span></h1>
                 <p>Disfruta de los últimos estrenos en nuestras modernas salas de cine. Cine La Estación te ofrece la mejor experiencia cinematográfica con sonido envolvente, pantallas gigantes y comodidad inigualable.</p>
                 <div class="d-flex gap-3 flex-wrap">
-                    <a href="#contactenos" class="btn-hero-primary">Comprar Entradas</a>
+                    <a href="/reservar" class="btn-hero-primary">Comprar Entradas</a>
                     <a href="#servicios" class="btn-hero-secondary">Ver Cartelera</a>
                 </div>
                 <div class="hero-features">
@@ -95,99 +95,27 @@
             <p class="section-sub">Descubre los últimos estrenos y las películas más populares. ¡Reserva tus entradas ahora!</p>
         </div>
         <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
+            <div th:each="p, pStat : ${peliculas}" class="col-md-6 col-lg-3">
                 <div class="movie-card">
-                    <div class="movie-poster poster-1">
-                        <img src="https://images.unsplash.com/photo-1761948245185-fc300ad20316?w=400" alt="Avatar 3">
-                        <span class="badge-estreno">ESTRENO</span>
+                    <div th:class="'movie-poster poster-' + (${pStat.index % 4 + 1})">
+                        <img th:src="${imagenes[pStat.index % 4]}" th:alt="${p.titulo}">
+                        <span th:if="${p.esEstreno}" class="badge-estreno">ESTRENO</span>
                     </div>
                     <div class="movie-body">
-                        <div class="movie-title">Avatar 3: El Semillero</div>
-                        <div class="movie-genre">Ciencia Ficción</div>
+                        <div class="movie-title" th:text="${p.titulo}"></div>
+                        <div class="movie-genre" th:text="${p.genero}"></div>
                         <div class="movie-meta">
-                            <span>⏱ 192 min</span>
+                            <span>⏱ <span th:text="${p.duracion}"></span> min</span>
                             <span class="rating">★ 4.8</span>
                         </div>
-                        <span class="badge-clasificacion">PG-13</span>
+                        <span class="badge-clasificacion" th:text="${p.clasificacion}"></span>
                         <div class="horarios-label">Horarios:</div>
-                        <div>
-                            <span class="horario-btn">14:00</span>
-                            <span class="horario-btn">17:30</span>
-                            <span class="horario-btn">21:00</span>
+                        <div th:if="${p.horarios != null}">
+                            <span th:each="h : ${#strings.arraySplit(p.horarios, ',')}"
+                                  th:text="${#strings.trim(h)}"
+                                  class="horario-btn"></span>
                         </div>
-                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="movie-card">
-                    <div class="movie-poster poster-2">
-                        <img src="https://images.unsplash.com/photo-1765510296004-614b6cc204da?w=400" alt="Guardianes de la Galaxia Vol. 4">
-                        <span class="badge-estreno">ESTRENO</span>
-                    </div>
-                    <div class="movie-body">
-                        <div class="movie-title">Guardianes de la Galaxia Vol. 4</div>
-                        <div class="movie-genre">Acción / Aventura</div>
-                        <div class="movie-meta">
-                            <span>⏱ 150 min</span>
-                            <span class="rating">★ 4.7</span>
-                        </div>
-                        <span class="badge-clasificacion">PG-13</span>
-                        <div class="horarios-label">Horarios:</div>
-                        <div>
-                            <span class="horario-btn">13:00</span>
-                            <span class="horario-btn">16:00</span>
-                            <span class="horario-btn">19:00</span>
-                            <span class="horario-btn">22:00</span>
-                        </div>
-                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="movie-card">
-                    <div class="movie-poster poster-3">
-                        <img src="https://images.unsplash.com/photo-1773353681034-3736f0fde648?w=400" alt="Aventura en el Bosque Mágico">
-                    </div>
-                    <div class="movie-body">
-                        <div class="movie-title">Aventura en el Bosque Mágico</div>
-                        <div class="movie-genre">Animación / Familia</div>
-                        <div class="movie-meta">
-                            <span>⏱ 105 min</span>
-                            <span class="rating">★ 4.6</span>
-                        </div>
-                        <span class="badge-clasificacion">G</span>
-                        <div class="horarios-label">Horarios:</div>
-                        <div>
-                            <span class="horario-btn">12:00</span>
-                            <span class="horario-btn">14:30</span>
-                            <span class="horario-btn">17:00</span>
-                        </div>
-                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="movie-card">
-                    <div class="movie-poster poster-4">
-                        <img src="https://images.unsplash.com/photo-1759230766134-e3ff1c27d20e?w=400" alt="Dune: Parte Tres">
-                        <span class="badge-estreno">ESTRENO</span>
-                    </div>
-                    <div class="movie-body">
-                        <div class="movie-title">Dune: Parte Tres</div>
-                        <div class="movie-genre">Ciencia Ficción / Drama</div>
-                        <div class="movie-meta">
-                            <span>⏱ 165 min</span>
-                            <span class="rating">★ 4.9</span>
-                        </div>
-                        <span class="badge-clasificacion">PG-13</span>
-                        <div class="horarios-label">Horarios:</div>
-                        <div>
-                            <span class="horario-btn">15:00</span>
-                            <span class="horario-btn">18:30</span>
-                            <span class="horario-btn">22:00</span>
-                        </div>
-                        <a href="#contactenos" class="btn-comprar">Comprar Entradas</a>
+                        <a th:href="'/reservar?peliculaId=' + ${p.id}" class="btn-comprar">Comprar Entradas</a>
                     </div>
                 </div>
             </div>
@@ -208,7 +136,7 @@
                 <p>Todos los martes disfruta de un <strong>50% de descuento</strong> en todas las entradas. Además, combos de snacks con precios especiales.</p>
                 <div class="d-flex gap-3 flex-wrap mb-4">
                     <a href="#servicios" class="btn-promo-outline">⊞ Ver Promociones</a>
-                    <a href="#contactenos" class="btn-promo-white">Reservar Ahora</a>
+                    <a href="/reservar" class="btn-promo-white">Reservar Ahora</a>
                 </div>
                 <div class="promo-stats">
                     <div class="promo-stat">

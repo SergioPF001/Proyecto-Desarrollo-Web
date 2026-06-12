@@ -1,6 +1,12 @@
 package com.amsuno.model;
 
+import jakarta.persistence.*;
+
+@Entity
 public class Pelicula {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String titulo;
     private String genero;
@@ -10,10 +16,14 @@ public class Pelicula {
     private boolean esEstreno;
     private String horarios;
 
+    @ManyToOne
+    @JoinColumn(name = "sala_id")
+    private Sala sala;
+
     public Pelicula() {}
 
-    public Pelicula(Long id, String titulo, String genero, int duracion, String clasificacion, double precio, boolean esEstreno, String horarios) {
-        this.id = id;
+    public Pelicula(String titulo, String genero, int duracion, String clasificacion,
+                    double precio, boolean esEstreno, String horarios) {
         this.titulo = titulo;
         this.genero = genero;
         this.duracion = duracion;
@@ -39,4 +49,6 @@ public class Pelicula {
     public void setEsEstreno(boolean esEstreno) { this.esEstreno = esEstreno; }
     public String getHorarios() { return horarios; }
     public void setHorarios(String horarios) { this.horarios = horarios; }
+    public Sala getSala() { return sala; }
+    public void setSala(Sala sala) { this.sala = sala; }
 }

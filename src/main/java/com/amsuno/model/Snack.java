@@ -1,6 +1,12 @@
 package com.amsuno.model;
 
+import jakarta.persistence.*;
+
+@Entity
 public class Snack {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nombre;
     private String categoria;
@@ -10,8 +16,7 @@ public class Snack {
 
     public Snack() {}
 
-    public Snack(Long id, String nombre, String categoria, double precio, int stock, String descripcion) {
-        this.id = id;
+    public Snack(String nombre, String categoria, double precio, int stock, String descripcion) {
         this.nombre = nombre;
         this.categoria = categoria;
         this.precio = precio;

@@ -1,268 +1,199 @@
-# Cine La Estación — Proyecto Web Spring Boot
-
-Aplicación web para la gestión de un cine desarrollada con **Java 21**, **Spring Boot 3.2.5** y **Thymeleaf**. Permite administrar películas, clientes, reservas y snacks desde un panel de administración protegido por login.
+# Cine La Estación — Sistema Web de Gestión y Reservas
 
 ---
 
-## Tecnologías utilizadas
+## PARTE 1 — ¿Qué es el sistema y qué problema resuelve?
 
-| Tecnología | Versión | Para qué se usa |
+Imaginen que tienen un cine y toda su gestión la hacen en papel o en hojas de Excel. Los clientes llaman para preguntar si hay asientos, el empleado tiene que revisar una lista manual, anotar el nombre, calcular el precio… Es lento, propenso a errores y muy difícil de escalar.
+
+**Cine La Estación** es un sistema web completo que digitaliza toda esa operación.
+
+El sistema tiene **dos caras**:
+
+**La cara pública** — lo que cualquier cliente puede ver sin necesidad de registrarse:
+- Una página de inicio con la cartelera actual, los servicios del cine, quiénes somos y contacto.
+- Un módulo de reservas donde el cliente elige su película, selecciona la fecha y el horario, escoge sus asientos en un mapa visual interactivo, ingresa sus datos personales y confirma. Todo desde el navegador, sin llamar a nadie.
+
+**La cara administrativa** — protegida por login, solo para el personal del cine:
+- Un dashboard con métricas clave: ingresos totales, reservas pendientes, clientes registrados, películas en cartelera.
+- Gestión completa de películas, clientes, reservas y snacks (agregar, consultar, eliminar).
+- Estadísticas con gráficos de barras, líneas y circulares para analizar el negocio.
+- Dos roles de usuario: Administrador (acceso total) y Cajero (acceso limitado).
+
+El proyecto fue desarrollado con **Java 21**, **Spring Boot 3.2.5**, base de datos **MySQL** y vistas en **Thymeleaf** con estilos **Bootstrap 5**.
+
+---
+
+## PARTE 2 — ¿Cómo está construido? La arquitectura del sistema
+
+El sistema sigue una arquitectura en capas, que es el estándar profesional para aplicaciones web en Java. Cada capa tiene una responsabilidad específica y no se mezcla con las demás.
+
+```
+[ Navegador del usuario ]
+         ↓  petición HTTP
+[ Controlador ]  ← recibe la petición y decide qué hacer
+         ↓
+[ Servicio ]     ← contiene la lógica del negocio
+         ↓
+[ Repositorio ]  ← habla directamente con la base de datos
+         ↓
+[ Base de datos MySQL ]
+         ↑
+[ Modelo / Entidad ]  ← representa las tablas de la base de datos
+```
+
+**¿Por qué esta separación?**
+
+Si mañana queremos cambiar MySQL por otro motor de base de datos, solo tocamos los repositorios. Si queremos cambiar cómo se calcula el precio de una reserva, solo tocamos el servicio. Si queremos agregar una nueva pantalla, solo tocamos el controlador. Cada parte es independiente y reemplazable.
+
+**Las tecnologías que se usaron y por qué:**
+
+| Tecnología | Versión | Por qué se eligió |
 |---|---|---|
-| Java | 21 | Lenguaje principal del backend |
-| Spring Boot | 3.2.5 | Framework para levantar el servidor web |
-| Thymeleaf | (incluido) | Motor de plantillas HTML del lado del servidor |
-| Bootstrap | 5.3.3 | Estilo visual y diseño responsivo |
-| Chart.js | 4.4.3 | Gráficos de barras, líneas y círculos |
-| WebJars | — | Sirve Bootstrap y Chart.js desde el servidor sin CDN externo |
+| Java 21 | LTS | Última versión de soporte a largo plazo, estable y moderna |
+| Spring Boot 3.2.5 | Estable | Levanta un servidor web completo con mínima configuración |
+| Spring Data JPA | Incluido | Convierte objetos Java en tablas SQL automáticamente |
+| Thymeleaf 3.1 | Incluido | Genera HTML dinámico en el servidor, simple y seguro |
+| MySQL 8 | — | Base de datos relacional robusta y gratuita |
+| Bootstrap 5.3.3 | WebJar | Diseño responsivo profesional sin escribir CSS desde cero |
+| Chart.js 4.4.3 | WebJar | Gráficos interactivos en el navegador |
+
+Un detalle importante: Bootstrap y Chart.js se sirven como **WebJars**, lo que significa que están empaquetados dentro del propio proyecto Java y no dependen de servidores externos (CDN). El sistema funciona aunque no haya internet.
 
 ---
 
-## Cumplimiento de la rúbrica
+## PARTE 3 — ¿Cómo se organizan los datos? El modelo de base de datos
 
-### 1. Clases Modelo — mínimo 3 clases ✅
+Esta es la parte más importante de entender antes de hablar de cualquier funcionalidad. Los datos del sistema se organizan en **7 entidades** (tablas en la base de datos), y cada una representa algo del mundo real del cine.
 
-Se crearon **4 clases modelo** en `src/main/java/com/amsuno/model/`:
+**Sala** — Una sala física del cine. Tiene nombre, cantidad de filas y columnas.
+*Ejemplo: "Sala Principal" con 5 filas y 8 columnas = 40 asientos.*
 
-**`Cliente.java`**
-Representa a un cliente del cine. Atributos: `id`, `nombre`, `email`, `telefono`.
+**Asiento** — Un asiento específico dentro de una sala. Tiene su fila (A, B, C…), número (1 al 8) y tipo (normal, preferencial o VIP). Un asiento pertenece a una sola sala.
 
-**`Pelicula.java`**
-Representa una película en cartelera. Atributos: `id`, `titulo`, `genero`, `duracion`, `clasificacion`, `precio`, `esEstreno`, `horarios`.
+**Pelicula** — Una película en cartelera. Tiene título, género, duración, clasificación (G, PG-13…), precio de la entrada, si es estreno, y los horarios disponibles separados por coma. Una película se proyecta en una sala específica.
 
-**`Reserva.java`**
-Representa una reserva de entradas. Atributos: `id`, `clienteNombre`, `pelicula`, `fecha`, `asientos`, `total`, `estado` (Pendiente / Confirmada / Cancelada).
+**Cliente** — Una persona que hace una reserva. Solo se guarda nombre, email y teléfono. No necesita contraseña porque el sistema no requiere que los clientes se registren; se identifican por su email.
 
-**`Snack.java`**
-Representa un producto del snack bar. Atributos: `id`, `nombre`, `categoria`, `precio`, `stock`, `descripcion`.
+**Reserva** — El evento central del sistema. Vincula a un cliente con una película, en una fecha y hora específica, por una cantidad de asientos y un precio total. Tiene un estado: Pendiente, Confirmada o Cancelada.
 
-> Todas las clases usan getters y setters, constructor vacío y constructor completo. No usan base de datos — los datos viven en memoria (`ArrayList`) mientras el servidor esté corriendo.
+**ReservaAsiento** — La tabla intermedia que dice exactamente qué asientos físicos se reservaron en cada reserva. Es necesaria porque una reserva puede ocupar varios asientos, y un asiento puede estar en muchas reservas distintas (en fechas distintas).
 
----
+**Snack** — Un producto del snack bar. Tiene nombre, categoría, precio, stock y descripción.
 
-### 2. Clases de Servicio con operaciones CRUD ✅
-
-Se crearon **4 servicios** en `src/main/java/com/amsuno/service/`. Cada uno tiene:
-
-- `listar()` — devuelve la lista completa en memoria
-- `agregar(objeto)` — asigna un ID automático con `AtomicLong` y lo agrega a la lista
-- `buscar(id)` — recorre la lista con stream y retorna el objeto que coincide con el ID
-- `eliminar(id)` — remueve el objeto de la lista cuyo ID coincide
-
-**`ClienteService.java`** — gestiona la lista de clientes. Incluye 3 clientes de ejemplo precargados al iniciar.
-
-**`PeliculaService.java`** — gestiona la cartelera. Incluye 4 películas de ejemplo precargadas.
-
-**`ReservaService.java`** — gestiona las reservas. Además del CRUD tiene `confirmar(id)` que cambia el estado de una reserva de "Pendiente" a "Confirmada". Incluye 3 reservas de ejemplo.
-
-**`SnackService.java`** — gestiona los productos del snack bar. Incluye 3 snacks de ejemplo precargados.
-
-**¿Por qué `AtomicLong`?**
-Es un contador que se incrementa de forma segura. Cada vez que se agrega un objeto nuevo, el contador sube en 1 y ese número se usa como ID único del objeto.
-
-**¿Por qué `ArrayList`?**
-Es la estructura más simple de Java para guardar listas de objetos en memoria. No se necesita base de datos porque el objetivo es demostrar la lógica CRUD de forma básica.
-
----
-
-### 3. Controladores conectados con páginas HTML ✅
-
-Se crearon **3 controladores** en `src/main/java/com/amsuno/controller/`:
-
-**`HomeController.java`**
-Maneja la ruta `/` y retorna la página de inicio (`index.html`). Es el controlador más simple del proyecto.
+**Relaciones entre las tablas:**
 
 ```
-GET /  →  index.html
+Sala ──── (tiene muchos) ──── Asiento
+Sala ──── (asignada a) ──── Pelicula
+
+Cliente ──── (hace) ──── Reserva
+Pelicula ──── (es parte de) ──── Reserva
+
+Reserva ──── (ocupa) ──── ReservaAsiento ──── (referencia a) ──── Asiento
 ```
 
-**`LoginController.java`**
-Maneja el acceso al panel de administración.
-- `GET /login` — muestra el formulario de login
-- `POST /login` — recibe usuario y contraseña, los compara con las credenciales definidas como constantes (`admin_cine` / `LaEstacion2026!`). Si son correctas, guarda `loggedIn = true` en la sesión HTTP y redirige al dashboard.
-
-```
-GET  /login  →  login.html
-POST /login  →  valida credenciales → redirect:/admin/dashboard o error
-```
-
-**`AdminController.java`**
-Es el controlador principal. Maneja todas las rutas del panel de administración bajo `/admin/**`. **Cada método verifica primero si hay sesión activa** — si no hay login, redirige a `/login`.
-
-Rutas disponibles:
-
-| Método | Ruta | Acción |
-|--------|------|--------|
-| GET | `/admin/dashboard` | Muestra el dashboard con resumen general |
-| GET | `/admin/peliculas` | Lista todas las películas |
-| POST | `/admin/peliculas/agregar` | Agrega una película nueva |
-| GET | `/admin/peliculas/eliminar/{id}` | Elimina una película por ID |
-| GET | `/admin/clientes` | Lista todos los clientes |
-| POST | `/admin/clientes/agregar` | Agrega un cliente nuevo |
-| GET | `/admin/clientes/eliminar/{id}` | Elimina un cliente por ID |
-| GET | `/admin/reservas` | Lista reservas (con filtro por estado y búsqueda) |
-| POST | `/admin/reservas/nueva` | Crea una reserva nueva |
-| GET | `/admin/reservas/confirmar/{id}` | Confirma una reserva pendiente |
-| GET | `/admin/reservas/eliminar/{id}` | Elimina una reserva por ID |
-| GET | `/admin/snacks` | Lista todos los snacks |
-| POST | `/admin/snacks/agregar` | Agrega un snack nuevo |
-| GET | `/admin/snacks/eliminar/{id}` | Elimina un snack por ID |
-| GET | `/admin/estadisticas` | Página de estadísticas con gráficos |
-| GET | `/admin/graficos` | Segunda página de gráficos |
-| GET | `/admin/cerrar-sesion` | Cierra la sesión e invalida la cookie |
+La tabla `reserva_asiento` es la clave del sistema. Cuando alguien cancela una reserva, esa tabla se limpia y los asientos quedan libres para otra reserva en la misma fecha.
 
 ---
 
-### 4. Páginas Thymeleaf con formularios, listado, consulta y eliminación ✅
+## PARTE 4 — ¿Qué puede hacer el sistema? Las funcionalidades principales
 
-Se crearon **más de 4 páginas** en `src/main/resources/templates/`:
+**Flujo de reserva pública (lo que ve el cliente):**
 
-#### Página pública
-
-**`index.html`** — Página principal del sitio. Contiene secciones: hero con cartelera de la semana, servicios, quiénes somos, testimonios y formulario de contacto. El navbar enlaza a cada sección mediante anclas (`#inicio`, `#servicios`, etc.).
-
-**`login.html`** — Formulario de acceso al panel admin. Tiene campos usuario y contraseña. Si los datos son incorrectos muestra un mensaje de error.
-
-#### Panel de administración (`templates/admin/`)
-
-**`dashboard.html`** — Vista general del sistema. Muestra tarjetas KPI con: total de ingresos, número de reservas, clientes registrados y películas en cartelera. También lista las últimas reservas con su estado.
-
-**`peliculas.html`** — Formulario para agregar películas (título, género, duración, clasificación, precio, horarios, estreno) + listado en tarjetas con botón eliminar.
-
-**`clientes.html`** — Formulario para agregar clientes (nombre, email, teléfono) + tabla con todos los clientes y botón eliminar.
-
-**`reservas.html`** — Formulario para crear reservas (cliente, película, fecha, asientos, total, estado) + tabla de reservas con filtro por estado, búsqueda por texto, botón confirmar y botón eliminar.
-
-**`snacks.html`** — Formulario para agregar snacks (nombre, categoría, precio, stock, descripción) + listado en tarjetas con stock visible y botón eliminar.
-
-**`estadisticas.html`** — Primera página de gráficos. Contiene 3 KPIs y 3 gráficos: barras de precio por película, dona de estado de reservas, línea de reservas por mes.
-
-**`graficos.html`** — Segunda página de gráficos. Contiene 3 KPIs y 3 gráficos: barras horizontales de duración por película, pie de distribución de reservas, línea de ingresos estimados por semana.
-
-**`configuracion.html`** — Página informativa con los datos del cine (nombre, dirección, credenciales del admin).
-
-#### Fragmento reutilizable
-
-**`fragments/sidebar.html`** — Barra lateral de navegación del panel admin. Se incluye en todas las páginas admin con `th:replace`. Recibe un parámetro `activo` para resaltar el ítem del menú correspondiente. Contiene links a: Dashboard, Reservas, Películas, Clientes, Snacks, Estadísticas, Gráficos, Configuración y Cerrar Sesión.
-
----
-
-### 5. Páginas de gráficos: barras, lineales y círculos ✅
-
-**`admin/estadisticas.html`**
-- Gráfico de **barras verticales**: precio de cada película en cartelera
-- Gráfico de **dona (circular)**: proporción de reservas Confirmadas / Pendientes / Canceladas
-- Gráfico **lineal**: tendencia de reservas por mes (12 meses)
-
-**`admin/graficos.html`**
-- Gráfico de **barras horizontales**: duración en minutos de cada película
-- Gráfico **circular (pie)**: distribución de reservas por estado
-- Gráfico **lineal**: ingresos estimados por semana (8 semanas)
-
-Los datos de películas y reservas se pasan desde el servidor mediante Thymeleaf (`th:inline="javascript"`) y Chart.js los procesa para dibujar los gráficos.
-
----
-
-### 6. Menú con Bootstrap que enlaza las páginas ✅
-
-**Navbar pública** (`index.html`): barra de navegación Bootstrap con enlaces de scroll suave a las secciones de la misma página (`#inicio`, `#servicios`, `#quienes-somos`, `#contactenos`) y botón "Ingresar" que lleva al login.
-
-**Sidebar del panel admin** (`fragments/sidebar.html`): menú lateral Bootstrap con enlaces a todas las páginas del panel. El ítem activo se resalta automáticamente con una clase CSS distinta usando Thymeleaf.
-
----
-
-## Estructura del proyecto
+El proceso tiene tres pasos bien definidos, todos en la misma URL (`/reservar`), pero el sistema detecta en qué paso está según los parámetros de la URL:
 
 ```
-src/main/java/com/amsuno/
-│
-├── CineApp.java                        ← Punto de entrada, arranca el servidor
-│
-├── model/
-│   ├── Cliente.java                    ← Clase modelo: cliente
-│   ├── Pelicula.java                   ← Clase modelo: película
-│   ├── Reserva.java                    ← Clase modelo: reserva
-│   └── Snack.java                      ← Clase modelo: snack
-│
-├── service/
-│   ├── ClienteService.java             ← CRUD de clientes en memoria
-│   ├── PeliculaService.java            ← CRUD de películas en memoria
-│   ├── ReservaService.java             ← CRUD + confirmar reservas en memoria
-│   └── SnackService.java               ← CRUD de snacks en memoria
-│
-└── controller/
-    ├── HomeController.java             ← Ruta pública: /
-    ├── LoginController.java            ← Rutas: /login (GET y POST)
-    └── AdminController.java            ← Rutas: /admin/** (protegidas por sesión)
+Paso 1: /reservar
+→ El cliente ve todas las películas disponibles en tarjetas.
+→ Hace clic en la que quiere.
 
-src/main/resources/
-│
-├── templates/
-│   ├── index.html                      ← Página principal pública
-│   ├── login.html                      ← Formulario de acceso admin
-│   ├── fragments/
-│   │   └── sidebar.html               ← Menú lateral reutilizable (admin)
-│   └── admin/
-│       ├── dashboard.html              ← Resumen general con KPIs
-│       ├── peliculas.html              ← CRUD de películas
-│       ├── clientes.html               ← CRUD de clientes
-│       ├── reservas.html               ← CRUD de reservas con filtros
-│       ├── snacks.html                 ← CRUD de snacks
-│       ├── estadisticas.html           ← Gráficos 1: barras, dona, línea
-│       ├── graficos.html               ← Gráficos 2: barras horiz., pie, línea
-│       └── configuracion.html          ← Datos del sistema
-│
-└── static/
-    └── css/
-        └── amsuno.css                  ← Estilos personalizados del proyecto
+Paso 2: /reservar?peliculaId=1
+→ Aparece la información de la película seleccionada.
+→ El cliente elige la fecha en un calendario y el horario haciendo clic en un botón.
+
+Paso 3: /reservar?peliculaId=1&fecha=2026-06-15 17:30
+→ Aparece el mapa de asientos con dos secciones y pasillo central.
+→ Los asientos ocupados aparecen en rojo y no se pueden seleccionar.
+→ El cliente llena sus datos (nombre, apellido, email, teléfono).
+→ Confirma la reserva y el sistema la guarda en la base de datos.
 ```
+
+Si el cliente ya existe en el sistema (mismo email), se reutiliza su registro. Si es nuevo, se crea automáticamente. El cliente nunca necesita "registrarse" explícitamente.
+
+**Panel de administración (lo que ve el personal):**
+
+Acceso mediante `/login` con dos roles:
+- `admin_cine` / `LaEstacion2026!` — Acceso completo a todo, incluyendo estadísticas y configuración.
+- `cajero_cine` / `Cajero2026!` — Acceso a reservas, películas y clientes, pero no a estadísticas ni configuración.
+
+Desde el panel, el administrador puede:
+- Crear reservas manualmente eligiendo cliente, película, fecha, horario y asientos desde el mismo mapa visual que el cliente público.
+- Confirmar o cancelar reservas existentes.
+- Agregar y eliminar películas, clientes y snacks.
+- Ver gráficos de rendimiento: ingresos por película, distribución de reservas por estado, tendencia mensual.
 
 ---
 
-## Cómo funciona el flujo de datos
+## PARTE 5 — La parte técnica avanzada: Procedimientos Almacenados
+
+Esta es la característica más avanzada del proyecto desde el punto de vista de bases de datos.
+
+Un **procedimiento almacenado** es un bloque de código SQL que vive dentro del servidor de base de datos MySQL, no en el código Java. Se llama por nombre desde Java y MySQL lo ejecuta. Es como tener una función en la base de datos.
+
+En este proyecto se implementaron **4 procedimientos almacenados**, y hay una razón específica para cada uno:
+
+**`sp_AsientosDisponibles`** — El más importante. Recibe el ID de una película y una fecha, y devuelve todos los asientos de esa sala indicando si están ocupados o disponibles para ese día. Requería un `JOIN` complejo entre 4 tablas (pelicula → sala → asiento → reserva_asiento → reserva) con una condición de exclusión de reservas canceladas. Este tipo de consulta se beneficia enormemente de estar en el motor de base de datos porque es más rápida que traer todos los datos a Java y filtrarlos ahí.
+
+**`sp_CrearReserva`** — Inserta una nueva reserva y devuelve el ID generado automáticamente usando `LAST_INSERT_ID()`. Se usó procedimiento porque necesitamos ese ID de vuelta (parámetro OUT) de forma atómica — si alguien más inserta al mismo tiempo, `LAST_INSERT_ID()` garantiza que cada conexión obtiene su propio ID.
+
+**`sp_CancelarReserva`** — Realiza dos operaciones en secuencia: primero elimina los registros de `reserva_asiento` para liberar los asientos, y luego actualiza el estado de la reserva a 'Cancelada'. Se usa procedimiento porque estas dos operaciones deben ocurrir juntas como una unidad. Si fallara entre medias, los asientos quedarían huérfanos.
+
+**`sp_ResumenSala`** — Calcula cuántos asientos totales, ocupados y disponibles tiene una sala para una fecha dada. Útil para métricas internas.
+
+Los procedimientos se crean automáticamente cada vez que arranca la aplicación, gracias a la clase `ProcedimientosLoader.java` que los registra en MySQL antes de que el sistema empiece a recibir peticiones.
 
 ```
-Usuario llena formulario HTML
+Spring Boot arranca
         ↓
-Thymeleaf envía POST al controlador
+ProcedimientosLoader se ejecuta (evento ApplicationReady)
         ↓
-AdminController recibe los datos como objeto Java (@ModelAttribute)
+Elimina los procedimientos viejos (DROP PROCEDURE IF EXISTS)
         ↓
-Llama al Service correspondiente → agregar(objeto)
+Los recrea con la versión actualizada
         ↓
-El Service asigna un ID y lo guarda en el ArrayList en memoria
-        ↓
-Controlador redirige → la página recarga y muestra el dato nuevo
+El sistema ya puede recibir peticiones
 ```
 
----
-
-## Cómo funciona la protección del panel admin
-
-```
-Accede a cualquier ruta /admin/**
-        ↓
-AdminController llama a sinSesion(sesion)
-        ↓
-¿Existe sesion.getAttribute("loggedIn")?
-   NO  →  redirect:/login
-   SÍ  →  ejecuta la lógica normal y retorna la vista
-```
-
-El login guarda `loggedIn = true` en la sesión HTTP de Spring. Al cerrar sesión con `/admin/cerrar-sesion`, la sesión se invalida completamente.
+Esto garantiza que los procedimientos en MySQL siempre estén sincronizados con el código Java, sin necesidad de ejecutar scripts SQL manualmente.
 
 ---
 
 ## Cómo ejecutar el proyecto
 
+**Requisitos previos:**
+- Java 21 instalado
+- MySQL 8 corriendo en localhost:3306
+- Base de datos `cine_db` creada (vacía es suficiente)
+
 ```bash
-# Desde la raíz del proyecto
+# Desde la carpeta raíz del proyecto
 mvn spring-boot:run
 ```
 
 Luego abrir en el navegador:
-- Sitio público: `http://localhost:8080/`
-- Panel admin: `http://localhost:8080/login`
-  - Usuario: `admin_cine`
-  - Contraseña: `LaEstacion2026!`
 
-> Los datos se guardan **en memoria**. Al reiniciar el servidor, los datos vuelven a los valores de ejemplo predefinidos en cada Service.
+| URL | Descripción |
+|---|---|
+| `http://localhost:8080/` | Página pública del cine |
+| `http://localhost:8080/reservar` | Módulo de reservas para clientes |
+| `http://localhost:8080/login` | Acceso al panel de administración |
+
+**Credenciales del panel:**
+
+| Usuario | Contraseña | Rol |
+|---|---|---|
+| `admin_cine` | `LaEstacion2026!` | Administrador (acceso total) |
+| `cajero_cine` | `Cajero2026!` | Cajero (acceso limitado) |
+
+Al iniciar por primera vez, el sistema crea automáticamente las tablas, las salas, los asientos, películas, clientes y reservas de demostración. No es necesario ejecutar ningún script SQL.

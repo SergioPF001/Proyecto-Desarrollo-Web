@@ -1,40 +1,19 @@
 package com.amsuno.service;
 
 import com.amsuno.model.Cliente;
+import com.amsuno.repository.ClienteRepository;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class ClienteService {
 
-    private final List<Cliente> clientes = new ArrayList<>();
-    private final AtomicLong contador = new AtomicLong();
+    private final ClienteRepository repo;
 
-    public ClienteService() {
-        clientes.add(new Cliente(contador.incrementAndGet(), "Carlos Mendoza", "carlos@email.com", "08012345678"));
-        clientes.add(new Cliente(contador.incrementAndGet(), "María García",   "maria@email.com",  "08098765432"));
-        clientes.add(new Cliente(contador.incrementAndGet(), "José Rodríguez", "jose@email.com",   "08056781234"));
-    }
+    public ClienteService(ClienteRepository repo) { this.repo = repo; }
 
-    public List<Cliente> listar() {
-        return clientes;
-    }
-
-    public void agregar(Cliente cliente) {
-        cliente.setId(contador.incrementAndGet());
-        clientes.add(cliente);
-    }
-
-    public Cliente buscar(Long id) {
-        return clientes.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public void eliminar(Long id) {
-        clientes.removeIf(c -> c.getId().equals(id));
-    }
+    public List<Cliente> listar() { return repo.findAll(); }
+    public void agregar(Cliente c) { repo.save(c); }
+    public Cliente buscar(Long id) { return repo.findById(id).orElse(null); }
+    public void eliminar(Long id) { repo.deleteById(id); }
 }

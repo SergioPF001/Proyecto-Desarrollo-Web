@@ -23,7 +23,6 @@
         <div class="admin-main">
             <div class="row g-4">
 
-                <!-- FORMULARIO AGREGAR CLIENTE -->
                 <div class="col-lg-4">
                     <div class="admin-card p-4">
                         <h6 class="fw-bold mb-3">Agregar Cliente</h6>
@@ -45,15 +44,14 @@
                     </div>
                 </div>
 
-                <!-- LISTADO DE CLIENTES -->
                 <div class="col-lg-8">
                     <div class="admin-card">
                         <div class="admin-card-header">
                             <div class="admin-card-title">Clientes Registrados</div>
                         </div>
                         <div class="table-responsive">
-                            <table class="admin-table">
-                                <thead>
+                            <table class="table table-bordered table-hover admin-table">
+                                <thead class="table-dark">
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
@@ -70,8 +68,8 @@
                                         <td class="fw-semibold" th:text="${c.nombre}"></td>
                                         <td th:text="${c.email}"></td>
                                         <td th:text="${c.telefono}"></td>
-                                        <td th:text="${pedidosPorCliente[c.nombre]}"></td>
-                                        <td>₦<span th:text="${gastadoPorCliente[c.nombre]}"></span></td>
+                                        <td th:text="${reservasPorCliente[c.id]}"></td>
+                                        <td>$<span th:text="${gastadoPorCliente[c.id]}"></span></td>
                                         <td>
                                             <a th:href="@{/admin/clientes/eliminar/{id}(id=${c.id})}"
                                                class="btn btn-sm btn-outline-danger"
@@ -87,10 +85,77 @@
                     </div>
                 </div>
 
+                <div class="col-12">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-3">Reservas por Cliente</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Seleccionar Cliente</label>
+                            <select id="filtroCliente" class="form-select" style="max-width:300px;" onchange="filtrarReservas()">
+                                <option value="">-- Todos los clientes --</option>
+                                <option th:each="c : ${clientes}"
+                                        th:value="${c.id}"
+                                        th:text="${c.nombre}"></option>
+                            </select>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped" id="tablaReservasCliente">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Email</th>
+                                        <th>Película</th>
+                                        <th>Género</th>
+                                        <th>Fecha</th>
+                                        <th>Asientos</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="r : ${reservasDTO}"
+                                        th:attr="data-cliente-id=${r.clienteId}">
+                                        <td th:text="${r.id}"></td>
+                                        <td th:text="${r.clienteNombre}"></td>
+                                        <td th:text="${r.clienteEmail}"></td>
+                                        <td th:text="${r.peliculaTitulo}"></td>
+                                        <td th:text="${r.peliculaGenero}"></td>
+                                        <td th:text="${r.fecha}"></td>
+                                        <td th:text="${r.asientos}"></td>
+                                        <td>$<span th:text="${r.total}"></span></td>
+                                        <td>
+                                            <span th:text="${r.estado}"
+                                                  th:class="${r.estado == 'Confirmada'} ? 'badge bg-success' : (${r.estado == 'Pendiente'} ? 'badge bg-warning text-dark' : 'badge bg-danger')">
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(reservasDTO)}" id="sinReservas">
+                                        <td colspan="9" class="text-center text-muted py-3">Sin reservas registradas.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+
 <script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script>
+function filtrarReservas() {
+    const clienteId = document.getElementById('filtroCliente').value;
+    let hayFilas = false;
+    document.querySelectorAll('#tablaReservasCliente tbody tr[data-cliente-id]').forEach(fila => {
+        const visible = !clienteId || fila.dataset.clienteId === clienteId;
+        fila.style.display = visible ? '' : 'none';
+        if (visible) hayFilas = true;
+    });
+    const sinReservas = document.getElementById('sinReservas');
+    if (sinReservas) sinReservas.style.display = hayFilas ? 'none' : '';
+}
+</script>
 </body>
 </html>

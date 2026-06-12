@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Entradas - Cine La Estación</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <span class="brand-icon">⊞</span>
+            Cine <span class="brand-color ms-1">La Estación</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="/#inicio">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#servicios">Servicios</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#quienes-somos">Quiénes Somos</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/reservar">Reservar</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-3">
+                <span class="navbar-phone">☏ 08064206913</span>
+                <a href="/login" class="btn-ingresar">Ingresar</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section class="reserva-hero">
+    <div class="container text-center">
+        <h1 class="fw-bold mb-2">Compra tus Entradas</h1>
+        <p class="mb-0" style="opacity:0.8;">Elige tu película, selecciona fecha y horario, elige tus asientos y listo.</p>
+    </div>
+</section>
+
+<div class="container mt-4" th:if="${exito}">
+    <div class="reserva-exito">
+        <span style="font-size:1.4rem;">✓</span>
+        <div>
+            <strong>¡Reserva confirmada!</strong> Tus asientos han sido reservados exitosamente.
+            <a href="/reservar" class="ms-2" style="color:#166534;font-weight:600;">Hacer otra reserva</a>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4" th:if="${errorAsientos != null}">
+    <div class="alert alert-danger rounded-3">Debes seleccionar al menos un asiento antes de confirmar.</div>
+</div>
+
+<div class="container py-5" th:if="${pelicula == null}">
+    <div class="text-center mb-4">
+        <h4 class="fw-bold" style="color:var(--primary);">Selecciona una Película</h4>
+        <p class="text-muted">Elige la película que deseas ver y comenzarás el proceso de reserva.</p>
+    </div>
+    <div class="row g-4">
+        <div th:each="p : ${peliculas}" class="col-md-6 col-lg-4">
+            <a th:href="'/reservar?peliculaId=' + ${p.id}" class="text-decoration-none">
+                <div class="reserva-pelicula-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold mb-0" th:text="${p.titulo}" style="color:var(--primary);"></h6>
+                        <span th:if="${p.esEstreno}" class="badge-estreno-mini">ESTRENO</span>
+                    </div>
+                    <div class="text-muted small mb-2" th:text="${p.genero}"></div>
+                    <div class="d-flex gap-3 small text-muted">
+                        <span>⏱ <span th:text="${p.duracion}"></span> min</span>
+                        <span th:text="${p.clasificacion}" class="fw-semibold"></span>
+                        <span>💰 $<span th:text="${p.precio}"></span></span>
+                    </div>
+                    <div class="mt-2" th:if="${p.horarios != null}">
+                        <span th:each="h : ${#strings.arraySplit(p.horarios, ',')}"
+                              th:text="${#strings.trim(h)}"
+                              class="horario-tag"></span>
+                    </div>
+                    <div class="btn-seleccionar-pelicula mt-3">Seleccionar →</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4" th:if="${pelicula != null and fecha == null}">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="reserva-card mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="reserva-pelicula-icon">⊞</div>
+                    <div>
+                        <h5 class="fw-bold mb-0" th:text="${pelicula.titulo}" style="color:var(--primary);"></h5>
+                        <div class="text-muted small">
+                            <span th:text="${pelicula.genero}"></span> ·
+                            <span th:text="${pelicula.duracion}"></span> min ·
+                            <span th:text="${pelicula.clasificacion}"></span>
+                        </div>
+                    </div>
+                    <div class="ms-auto text-end">
+                        <div class="fw-bold" style="color:var(--accent);font-size:1.1rem;">$<span th:text="${pelicula.precio}"></span></div>
+                        <div class="text-muted small">por entrada</div>
+                    </div>
+                </div>
+                <div th:if="${pelicula.sala != null}" class="text-muted small">
+                    📍 <span th:text="${pelicula.sala.nombre}"></span>
+                </div>
+            </div>
+
+            <div class="reserva-card">
+                <h6 class="fw-bold mb-3" style="color:var(--primary);">Selecciona Fecha y Horario</h6>
+                <form id="formSeleccion" method="get" action="/reservar">
+                    <input type="hidden" name="peliculaId" th:value="${pelicula.id}">
+                    <input type="hidden" id="fechaHora" name="fecha">
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Fecha de la función</label>
+                        <input type="date" id="fechaDate" class="form-control" style="max-width:240px;">
+                    </div>
+
+                    <div>
+                        <label class="form-label fw-semibold">Horario</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button th:each="h : ${horarios}"
+                                    type="button"
+                                    th:text="${#strings.trim(h)}"
+                                    th:data-horario="${#strings.trim(h)}"
+                                    onclick="seleccionarHorario(this.dataset.horario)"
+                                    class="btn-horario-pub">
+                            </button>
+                        </div>
+                        <div th:if="${#lists.isEmpty(horarios)}" class="text-muted small mt-2">
+                            No hay horarios disponibles para esta película.
+                        </div>
+                    </div>
+                </form>
+
+                <div class="mt-3 pt-3" style="border-top:1px solid #e5e7eb;">
+                    <a th:href="'/reservar'" class="text-muted small">← Cambiar película</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4" th:if="${pelicula != null and fecha != null}">
+
+    <div class="reserva-card mb-4">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="reserva-pelicula-icon">⊞</div>
+            <div>
+                <h6 class="fw-bold mb-0" th:text="${pelicula.titulo}" style="color:var(--primary);"></h6>
+                <div class="text-muted small">
+                    <span th:text="${pelicula.genero}"></span> ·
+                    <span th:text="${pelicula.duracion}"></span> min
+                </div>
+            </div>
+            <div class="ms-2">
+                <span class="horario-tag" th:text="${fecha}"></span>
+            </div>
+            <div th:if="${pelicula.sala != null}" class="text-muted small">
+                📍 <span th:text="${pelicula.sala.nombre}"></span>
+            </div>
+            <a th:href="'/reservar?peliculaId=' + ${pelicula.id}" class="ms-auto text-muted small">← Cambiar horario</a>
+        </div>
+    </div>
+
+    <form action="/reservar" method="post" id="formReserva">
+        <input type="hidden" name="peliculaId" th:value="${pelicula.id}">
+        <input type="hidden" name="fecha"      th:value="${fecha}">
+        <input type="hidden" name="asientoIds" id="asientoIds" value="">
+
+        <div class="row g-4 align-items-start">
+
+            <div class="col-lg-4">
+                <div class="reserva-card mb-4">
+                    <h6 class="fw-bold mb-3" style="color:var(--primary);">Tus Datos</h6>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Nombre *</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Carlos" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Apellido *</label>
+                        <input type="text" name="apellido" class="form-control" placeholder="Mendoza" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Email *</label>
+                        <input type="email" name="email" class="form-control" placeholder="tu@email.com" required>
+                    </div>
+                    <div>
+                        <label class="form-label fw-semibold small">Teléfono *</label>
+                        <input type="text" name="telefono" class="form-control" placeholder="08012345678" required>
+                    </div>
+                </div>
+
+                <div class="reserva-card">
+                    <h6 class="fw-bold mb-3" style="color:var(--primary);">Resumen</h6>
+                    <div class="mb-2 d-flex justify-content-between small">
+                        <span class="text-muted">Película</span>
+                        <span class="fw-semibold text-end" th:text="${pelicula.titulo}" style="max-width:60%;"></span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between small">
+                        <span class="text-muted">Función</span>
+                        <span class="fw-semibold" th:text="${fecha}"></span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between small" th:if="${pelicula.sala != null}">
+                        <span class="text-muted">Sala</span>
+                        <span class="fw-semibold" th:text="${pelicula.sala.nombre}"></span>
+                    </div>
+                    <hr>
+                    <div class="mb-2 d-flex justify-content-between small">
+                        <span class="text-muted">Asientos</span>
+                        <span id="resumenAsientos" class="fw-semibold" style="color:var(--primary);">Ninguno</span>
+                    </div>
+                    <div class="mb-4 d-flex justify-content-between">
+                        <span class="fw-bold">Total</span>
+                        <span id="resumenTotal" class="fw-bold" style="color:var(--accent);font-size:1.2rem;">$0</span>
+                    </div>
+                    <button type="submit" id="btnConfirmar" class="btn-primary-cinema w-100" disabled>
+                        Confirmar Reserva
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="reserva-card seat-card">
+                    <h6 class="fw-bold mb-3" style="color:var(--primary);">Selecciona tus Asientos</h6>
+                    <div class="mapa-sala-wrapper">
+                    <div class="pantalla-cine mb-2">PANTALLA</div>
+
+                    <div class="sala-contenedor">
+                        <div th:each="filaAsientos : ${filasConAsientos}" class="fila-asientos-2sec">
+                            <span class="etiqueta-fila" th:text="${filaAsientos[0].fila}">A</span>
+
+                            <div class="d-flex gap-1">
+                                <div th:each="asiento, aStat : ${filaAsientos}"
+                                     th:if="${aStat.index < filaAsientos.size() / 2}"
+                                     th:id="'btn-' + ${asiento.id}"
+                                     th:class="'asiento-btn asiento-tipo-' + ${asiento.tipo} + (${asiento.estado == 'ocupado'} ? ' asiento-ocupado' : ' asiento-disponible')"
+                                     th:text="${asiento.numero}"
+                                     th:data-id="${asiento.id}"
+                                     th:data-precio="${pelicula.precio}"
+                                     onclick="handleSeat(this)">
+                                </div>
+                            </div>
+
+                            <div class="pasillo-central"></div>
+
+                            <div class="d-flex gap-1">
+                                <div th:each="asiento, aStat : ${filaAsientos}"
+                                     th:if="${aStat.index >= filaAsientos.size() / 2}"
+                                     th:id="'btn-' + ${asiento.id}"
+                                     th:class="'asiento-btn asiento-tipo-' + ${asiento.tipo} + (${asiento.estado == 'ocupado'} ? ' asiento-ocupado' : ' asiento-disponible')"
+                                     th:text="${asiento.numero}"
+                                     th:data-id="${asiento.id}"
+                                     th:data-precio="${pelicula.precio}"
+                                     onclick="handleSeat(this)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="leyenda-asientos mt-4 d-flex gap-3 flex-wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="asiento-btn asiento-disponible asiento-tipo-normal" style="pointer-events:none;">1</div>
+                            <span class="small">Normal</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="asiento-btn asiento-disponible asiento-tipo-preferencial" style="pointer-events:none;">1</div>
+                            <span class="small">Preferencial</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="asiento-btn asiento-disponible asiento-tipo-vip" style="pointer-events:none;">1</div>
+                            <span class="small">VIP</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="asiento-btn asiento-seleccionado" style="pointer-events:none;">1</div>
+                            <span class="small">Seleccionado</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="asiento-btn asiento-ocupado" style="pointer-events:none;">1</div>
+                            <span class="small">Ocupado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<footer class="footer mt-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="footer-brand">⊞ Cine <span>La Estación</span></div>
+                <p style="font-size:0.88rem;">Tu destino de entretenimiento favorito en Abuja.</p>
+                <p style="font-size:0.85rem;">☏ 08064206913</p>
+                <p style="font-size:0.85rem;">✉ info@cinelaestacion.com</p>
+                <p style="font-size:0.85rem;">📍 107 Gbagalape, Abuja 900103, FCT</p>
+            </div>
+            <div class="col-lg-4">
+                <h6>Servicios</h6>
+                <a href="/#servicios">Proyecciones 3D</a>
+                <a href="/#servicios">Snack Bar</a>
+                <a href="/#servicios">Eventos Privados</a>
+                <a href="/reservar">Reservas Online</a>
+            </div>
+            <div class="col-lg-4">
+                <h6>Enlaces Rápidos</h6>
+                <a href="/">Inicio</a>
+                <a href="/#quienes-somos">Quiénes Somos</a>
+                <a href="/#servicios">Servicios</a>
+                <a href="/reservar">Reservar Entradas</a>
+            </div>
+        </div>
+        <div class="footer-bottom d-flex justify-content-between flex-wrap gap-2">
+            <span>© 2026 Cine La Estación. Todos los derechos reservados.</span>
+        </div>
+    </div>
+</footer>
+
+<script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script>
+    const seleccionados = new Map();
+
+    function handleSeat(btn) {
+        if (btn.classList.contains('asiento-ocupado')) return;
+        const id     = parseInt(btn.dataset.id);
+        const precio = parseFloat(btn.dataset.precio);
+        toggleAsiento(id, precio, btn);
+    }
+
+    function toggleAsiento(id, precio, btn) {
+        if (seleccionados.has(id)) {
+            seleccionados.delete(id);
+            btn.classList.remove('asiento-seleccionado');
+            btn.classList.add('asiento-disponible');
+        } else {
+            const etiqueta = btn.closest('.fila-asientos-2sec').querySelector('.etiqueta-fila').textContent + btn.textContent.trim();
+            seleccionados.set(id, etiqueta);
+            btn.classList.remove('asiento-disponible');
+            btn.classList.add('asiento-seleccionado');
+        }
+        actualizarResumen(precio);
+    }
+
+    function actualizarResumen(precio) {
+        const ids      = Array.from(seleccionados.keys());
+        const etiquetas = Array.from(seleccionados.values()).sort();
+        const total     = ids.length * precio;
+
+        document.getElementById('asientoIds').value               = ids.join(',');
+        document.getElementById('resumenAsientos').textContent     = etiquetas.length ? etiquetas.join(', ') : 'Ninguno';
+        document.getElementById('resumenTotal').textContent        = '$' + total.toLocaleString();
+        document.getElementById('btnConfirmar').disabled           = ids.length === 0;
+    }
+
+    function seleccionarHorario(h) {
+        const fechaVal = document.getElementById('fechaDate').value;
+        if (!fechaVal) {
+            alert('Por favor selecciona una fecha primero.');
+            return;
+        }
+        document.getElementById('fechaHora').value = fechaVal + ' ' + h;
+        document.getElementById('formSeleccion').submit();
+    }
+</script>
+</body>
+</html>
