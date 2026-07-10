@@ -30,7 +30,7 @@
                             <span class="text-muted" th:text="${fecha}">Fecha</span>
                         </div>
 
-                        <form action="/admin/reservas/nueva" method="post" id="formReserva">
+                        <form th:action="@{/admin/reservas/nueva}" method="post" id="formReserva">
                             <input type="hidden" name="clienteId"   th:value="${cliente.id}">
                             <input type="hidden" name="peliculaId"  th:value="${pelicula.id}">
                             <input type="hidden" name="fecha"       th:value="${fecha}">

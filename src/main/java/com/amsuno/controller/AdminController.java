@@ -11,7 +11,6 @@ import com.amsuno.service.PeliculaService;
 import com.amsuno.service.ReservaService;
 import com.amsuno.service.SalaService;
 import com.amsuno.service.SnackService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 
 @Controller
 @RequestMapping("/admin")
@@ -47,14 +45,6 @@ public class AdminController {
         this.salaService     = salaService;
     }
 
-    private boolean sinSesion(HttpSession sesion) {
-        return sesion.getAttribute("loggedIn") == null;
-    }
-
-    private boolean sinPermiso(HttpSession sesion) {
-        return !"ADMIN".equals(sesion.getAttribute("userRole"));
-    }
-
     private ReservaDTO crearDTO(Reserva r) {
         return new ReservaDTO(r, asientoService.etiquetasAsientos(r.getId()));
     }
@@ -68,15 +58,12 @@ public class AdminController {
     }
 
     @GetMapping
-    public String inicio(HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String inicio() {
         return "redirect:/admin/dashboard";
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
-
+    public String dashboard(Model modelo) {
         List<Reserva> reservas   = reservaService.listar();
         List<Pelicula> peliculas = peliculaService.listar();
         List<Cliente> clientes   = clienteService.listar();
@@ -97,9 +84,7 @@ public class AdminController {
     @GetMapping("/reservas")
     public String reservas(@RequestParam(required = false) String buscar,
                            @RequestParam(required = false) String estado,
-                           HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
-
+                           Model modelo) {
         List<Reserva> lista = reservaService.listar();
 
         if (buscar != null && !buscar.isBlank()) {
@@ -131,9 +116,7 @@ public class AdminController {
                                @RequestParam String fecha,
                                @RequestParam Long clienteId,
                                @RequestParam(defaultValue = "Pendiente") String estado,
-                               HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
-
+                               Model modelo) {
         Pelicula pelicula = peliculaService.buscar(peliculaId);
 
         if (pelicula.getSala() == null) {
@@ -161,10 +144,7 @@ public class AdminController {
                                @RequestParam Long peliculaId,
                                @RequestParam String fecha,
                                @RequestParam String estado,
-                               @RequestParam(defaultValue = "") String asientoIds,
-                               HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
-
+                               @RequestParam(defaultValue = "") String asientoIds) {
         List<Long> ids = parsearIds(asientoIds);
         if (ids.isEmpty()) return "redirect:/admin/reservas?error=sinAsientos";
 
@@ -178,29 +158,25 @@ public class AdminController {
     }
 
     @GetMapping("/reservas/confirmar/{id}")
-    public String confirmarReserva(@PathVariable Long id, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String confirmarReserva(@PathVariable Long id) {
         reservaService.confirmar(id);
         return "redirect:/admin/reservas";
     }
 
     @GetMapping("/reservas/cancelar/{id}")
-    public String cancelarReserva(@PathVariable Long id, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String cancelarReserva(@PathVariable Long id) {
         asientoService.cancelarReserva(id);
         return "redirect:/admin/reservas";
     }
 
     @GetMapping("/reservas/eliminar/{id}")
-    public String eliminarReserva(@PathVariable Long id, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String eliminarReserva(@PathVariable Long id) {
         reservaService.eliminar(id);
         return "redirect:/admin/reservas";
     }
 
     @GetMapping("/peliculas")
-    public String peliculas(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String peliculas(Model modelo) {
         modelo.addAttribute("peliculas", peliculaService.listar());
         modelo.addAttribute("pelicula",  new Pelicula());
         modelo.addAttribute("salas",     salaService.listar());
@@ -209,25 +185,20 @@ public class AdminController {
 
     @PostMapping("/peliculas/agregar")
     public String agregarPelicula(@ModelAttribute Pelicula pelicula,
-                                  @RequestParam(required = false) Long salaId,
-                                  HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+                                  @RequestParam(required = false) Long salaId) {
         if (salaId != null) pelicula.setSala(salaService.buscar(salaId));
         peliculaService.agregar(pelicula);
         return "redirect:/admin/peliculas";
     }
 
     @GetMapping("/peliculas/eliminar/{id}")
-    public String eliminarPelicula(@PathVariable Long id, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String eliminarPelicula(@PathVariable Long id) {
         peliculaService.eliminar(id);
         return "redirect:/admin/peliculas";
     }
 
     @GetMapping("/clientes")
-    public String clientes(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
-
+    public String clientes(Model modelo) {
         List<Cliente> clientes = clienteService.listar();
         List<Reserva> reservas = reservaService.listar();
 
@@ -244,7 +215,7 @@ public class AdminController {
 
         List<ReservaDTO> reservasDTO = reservas.stream().map(this::crearDTO).toList();
 
-        modelo.addAttribute("clientes",           clientes);
+        modelo.addAttribute("clientes",            clientes);
         modelo.addAttribute("cliente",             new Cliente());
         modelo.addAttribute("reservasPorCliente",  reservasPorCliente);
         modelo.addAttribute("gastadoPorCliente",   gastadoPorCliente);
@@ -253,77 +224,59 @@ public class AdminController {
     }
 
     @PostMapping("/clientes/agregar")
-    public String agregarCliente(@ModelAttribute Cliente cliente, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String agregarCliente(@ModelAttribute Cliente cliente) {
         clienteService.agregar(cliente);
         return "redirect:/admin/clientes";
     }
 
     @GetMapping("/clientes/eliminar/{id}")
-    public String eliminarCliente(@PathVariable Long id, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String eliminarCliente(@PathVariable Long id) {
         clienteService.eliminar(id);
         return "redirect:/admin/clientes";
     }
 
     @GetMapping("/snacks")
-    public String snacks(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String snacks(Model modelo) {
         modelo.addAttribute("snacks", snackService.listar());
         modelo.addAttribute("snack",  new Snack());
         return "admin/snacks";
     }
 
     @PostMapping("/snacks/agregar")
-    public String agregarSnack(@ModelAttribute Snack snack, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String agregarSnack(@ModelAttribute Snack snack) {
         snackService.agregar(snack);
         return "redirect:/admin/snacks";
     }
 
     @GetMapping("/snacks/eliminar/{id}")
-    public String eliminarSnack(@PathVariable Long id, HttpSession sesion) {
-        if (sinSesion(sesion)) return "redirect:/login";
+    public String eliminarSnack(@PathVariable Long id) {
         snackService.eliminar(id);
         return "redirect:/admin/snacks";
     }
 
     @GetMapping("/estadisticas")
-    public String estadisticas(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion))  return "redirect:/login";
-        if (sinPermiso(sesion)) return "redirect:/admin/dashboard?accesoDenegado=true";
-        List<ReservaDTO> reservasDTO = reservaService.listar().stream().map(this::crearDTO).toList();
-        modelo.addAttribute("totalClientes",  clienteService.listar().size());
-        modelo.addAttribute("totalPeliculas", peliculaService.listar().size());
-        modelo.addAttribute("totalReservas",  reservasDTO.size());
-        modelo.addAttribute("peliculas",      peliculaService.listar());
-        modelo.addAttribute("reservas",       reservasDTO);
+    public String estadisticas(Model modelo) {
+        agregarResumen(modelo);
         return "admin/estadisticas";
     }
 
     @GetMapping("/graficos")
-    public String graficos(HttpSession sesion, Model modelo) {
-        if (sinSesion(sesion))  return "redirect:/login";
-        if (sinPermiso(sesion)) return "redirect:/admin/dashboard?accesoDenegado=true";
+    public String graficos(Model modelo) {
+        agregarResumen(modelo);
+        return "admin/graficos";
+    }
+
+    @GetMapping("/configuracion")
+    public String configuracion() {
+        return "admin/configuracion";
+    }
+
+    private void agregarResumen(Model modelo) {
         List<ReservaDTO> reservasDTO = reservaService.listar().stream().map(this::crearDTO).toList();
         modelo.addAttribute("totalClientes",  clienteService.listar().size());
         modelo.addAttribute("totalPeliculas", peliculaService.listar().size());
         modelo.addAttribute("totalReservas",  reservasDTO.size());
         modelo.addAttribute("peliculas",      peliculaService.listar());
         modelo.addAttribute("reservas",       reservasDTO);
-        return "admin/graficos";
-    }
-
-    @GetMapping("/configuracion")
-    public String configuracion(HttpSession sesion) {
-        if (sinSesion(sesion))  return "redirect:/login";
-        if (sinPermiso(sesion)) return "redirect:/admin/dashboard?accesoDenegado=true";
-        return "admin/configuracion";
-    }
-
-    @GetMapping("/cerrar-sesion")
-    public String cerrarSesion(HttpSession sesion) {
-        sesion.invalidate();
-        return "redirect:/";
     }
 }

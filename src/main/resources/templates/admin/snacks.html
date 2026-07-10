@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,7 +75,8 @@
                                     <span>₦<span th:text="${s.precio}"></span></span>
                                 </div>
                                 <p class="small text-muted mt-2 mb-3" th:text="${s.descripcion}"></p>
-                                <a th:href="@{/admin/snacks/eliminar/{id}(id=${s.id})}"
+                                <a sec:authorize="hasRole('ADMIN')"
+                                   th:href="@{/admin/snacks/eliminar/{id}(id=${s.id})}"
                                    class="btn btn-sm btn-outline-danger w-100"
                                    onclick="return confirm('¿Eliminar este snack?')">Eliminar</a>
                             </div>

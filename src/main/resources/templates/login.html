@@ -14,16 +14,21 @@
         <h1 class="login-title">Panel de Administración</h1>
         <p class="login-sub">Cine La Estación - Acceso Administrativo</p>
 
-        <div th:if="${error}" class="alert alert-danger py-2 mb-3 small" th:text="${error}"></div>
+        <div th:if="${param.error}" class="alert alert-danger py-2 mb-3 small">
+            Usuario o contraseña incorrectos.
+        </div>
+        <div th:if="${param.logout}" class="alert alert-success py-2 mb-3 small">
+            Sesión cerrada correctamente.
+        </div>
 
         <form th:action="@{/login}" method="post">
             <div class="mb-3">
                 <label class="form-label fw-semibold small">Usuario</label>
-                <input type="text" name="usuario" class="form-control" placeholder="Ingrese su usuario" required>
+                <input type="text" name="username" class="form-control" placeholder="Ingrese su usuario" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold small">Contraseña</label>
-                <input type="password" name="contrasena" class="form-control" placeholder="Ingrese su contraseña" required>
+                <input type="password" name="password" class="form-control" placeholder="Ingrese su contraseña" required>
             </div>
             <button type="submit" class="btn-primary-cinema mb-2">Ingresar al Panel</button>
         </form>

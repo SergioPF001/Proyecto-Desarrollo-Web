@@ -975,6 +975,11 @@ body {
     font-size: 0.84rem;
     padding: 6px 0;
     transition: color 0.2s;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
 }
 
 .admin-logout:hover { color: var(--white); }

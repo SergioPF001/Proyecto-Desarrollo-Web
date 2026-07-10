@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso denegado - Cine La Estación</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="login-body">
+<div class="d-flex align-items-center justify-content-center" style="min-height:100vh;padding:20px;">
+    <div class="login-card">
+        <div class="login-icon">🔒</div>
+        <h1 class="login-title">Acceso denegado</h1>
+        <p class="login-sub">Tu rol no tiene permisos para entrar a esta sección.</p>
+
+        <a href="/admin/dashboard" class="btn-primary-cinema mb-2 d-block text-center text-decoration-none">
+            Volver al Panel
+        </a>
+        <a href="/" class="btn-login-outline">Volver al Sitio</a>
+    </div>
+</div>
+</body>
+</html>

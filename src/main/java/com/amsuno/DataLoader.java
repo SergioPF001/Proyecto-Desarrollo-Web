@@ -3,6 +3,7 @@ package com.amsuno;
 import com.amsuno.model.*;
 import com.amsuno.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -19,11 +20,14 @@ public class DataLoader implements CommandLineRunner {
     private final SalaRepository            salas;
     private final AsientoRepository         asientos;
     private final ReservaAsientoRepository  reservaAsientosRepo;
+    private final UsuarioRepository         usuarios;
+    private final PasswordEncoder           passwordEncoder;
 
     public DataLoader(ClienteRepository clientes, PeliculaRepository peliculas,
                       ReservaRepository reservas, SnackRepository snacks,
                       SalaRepository salas, AsientoRepository asientos,
-                      ReservaAsientoRepository reservaAsientosRepo) {
+                      ReservaAsientoRepository reservaAsientosRepo,
+                      UsuarioRepository usuarios, PasswordEncoder passwordEncoder) {
         this.clientes            = clientes;
         this.peliculas           = peliculas;
         this.reservas            = reservas;
@@ -31,10 +35,13 @@ public class DataLoader implements CommandLineRunner {
         this.salas               = salas;
         this.asientos            = asientos;
         this.reservaAsientosRepo = reservaAsientosRepo;
+        this.usuarios            = usuarios;
+        this.passwordEncoder     = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
+        inicializarUsuarios();
         inicializarSalas();
 
         if (clientes.count() > 0) {
@@ -43,6 +50,13 @@ public class DataLoader implements CommandLineRunner {
         }
 
         inicializarDemostracion();
+    }
+
+    private void inicializarUsuarios() {
+        if (usuarios.count() > 0) return;
+
+        usuarios.save(new Usuario("admin_cine",  passwordEncoder.encode("LaEstacion2026!"), "ADMIN"));
+        usuarios.save(new Usuario("cajero_cine", passwordEncoder.encode("Cajero2026!"),     "CAJERO"));
     }
 
     private void inicializarSalas() {

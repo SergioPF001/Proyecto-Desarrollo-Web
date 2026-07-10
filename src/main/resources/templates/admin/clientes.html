@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,7 +72,8 @@
                                         <td th:text="${reservasPorCliente[c.id]}"></td>
                                         <td>$<span th:text="${gastadoPorCliente[c.id]}"></span></td>
                                         <td>
-                                            <a th:href="@{/admin/clientes/eliminar/{id}(id=${c.id})}"
+                                            <a sec:authorize="hasRole('ADMIN')"
+                                               th:href="@{/admin/clientes/eliminar/{id}(id=${c.id})}"
                                                class="btn btn-sm btn-outline-danger"
                                                onclick="return confirm('¿Eliminar?')">Eliminar</a>
                                         </td>

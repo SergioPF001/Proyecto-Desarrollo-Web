@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramientas - Admin</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="admin-wrapper">
+    <div th:replace="~{fragments/sidebar :: sidebar(activo='herramientas')}"></div>
+
+    <div class="admin-content">
+        <div class="admin-topbar">
+            <div>
+                <div class="admin-topbar-title">Herramientas de APIs Externas</div>
+                <div class="admin-topbar-sub">Consulta de DNI y tipo de cambio</div>
+            </div>
+            <a href="/" class="btn-ver-sitio">Ver Sitio</a>
+        </div>
+
+        <div class="admin-main">
+            <div class="row g-4">
+
+                <div class="col-lg-5">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-1">Consultar DNI</h6>
+                        <p class="small text-muted mb-3">
+                            Busca los datos de una persona en RENIEC y regístrala como cliente del cine.
+                        </p>
+
+                        <form th:action="@{/admin/herramientas}" method="get" class="d-flex gap-2 mb-3">
+                            <input type="text" name="dni" class="form-control"
+                                   th:value="${dni}" placeholder="Ej: 12345678"
+                                   maxlength="8" pattern="\d{8}" required>
+                            <button type="submit" class="btn-admin-primary">Buscar</button>
+                        </form>
+
+                        <div th:if="${errorDni}" class="alert alert-warning py-2 small" th:text="${errorDni}"></div>
+
+                        <div th:if="${persona}">
+                            <div class="admin-meta-row">
+                                <span>DNI:</span>
+                                <span th:text="${persona.numeroDocumento}"></span>
+                            </div>
+                            <div class="admin-meta-row">
+                                <span>Nombre:</span>
+                                <span th:text="${persona.nombreCompleto}"></span>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <p class="small fw-semibold mb-2">Registrar como cliente</p>
+                            <form th:action="@{/admin/clientes/agregar}" method="post">
+                                <input type="hidden" name="nombre" th:value="${persona.nombreCompleto}">
+                                <div class="mb-2">
+                                    <label class="form-label small">Email</label>
+                                    <input type="email" name="email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small">Teléfono</label>
+                                    <input type="text" name="telefono" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn-admin-primary w-100">Guardar Cliente</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="admin-card p-4">
+                        <h6 class="fw-bold mb-1">Tipo de Cambio</h6>
+                        <p class="small text-muted mb-3">
+                            Precios de la cartelera convertidos a dólares con la cotización del día.
+                        </p>
+
+                        <div th:if="${errorTipoCambio}" class="alert alert-warning py-2 small"
+                             th:text="${errorTipoCambio}"></div>
+
+                        <div th:if="${tipoCambio}">
+                            <div class="alert alert-info py-2 small mb-3">
+                                <strong>1 <span th:text="${tipoCambio.monedaBase}"></span> =
+                                    <span th:text="${#numbers.formatDecimal(tipoCambio.valor, 1, 3)}"></span>
+                                    <span th:text="${tipoCambio.monedaDestino}"></span></strong>
+                                <br>
+                                <span class="text-muted">Actualizado: <span th:text="${tipoCambio.actualizado}"></span></span>
+                            </div>
+
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                <tr>
+                                    <th>Película</th>
+                                    <th class="text-end">Precio (PEN)</th>
+                                    <th class="text-end">Precio (USD)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="p : ${peliculas}">
+                                    <td th:text="${p.titulo}"></td>
+                                    <td class="text-end"
+                                        th:text="'S/ ' + ${#numbers.formatDecimal(p.precio, 1, 2)}"></td>
+                                    <td class="text-end fw-semibold"
+                                        th:text="'$ ' + ${#numbers.formatDecimal(p.precio / tipoCambio.valor, 1, 2)}"></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(peliculas)}">
+                                    <td colspan="3" class="text-center text-muted py-3">Sin películas registradas.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

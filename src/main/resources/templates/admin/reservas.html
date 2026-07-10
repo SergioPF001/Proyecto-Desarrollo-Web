@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -143,7 +144,8 @@
                                                th:href="@{/admin/reservas/cancelar/{id}(id=${r.id})}"
                                                class="btn btn-sm btn-outline-warning"
                                                onclick="return confirm('¿Cancelar esta reserva? Los asientos quedarán libres.')">Cancelar</a>
-                                            <a th:href="@{/admin/reservas/eliminar/{id}(id=${r.id})}"
+                                            <a sec:authorize="hasRole('ADMIN')"
+                                               th:href="@{/admin/reservas/eliminar/{id}(id=${r.id})}"
                                                class="btn btn-sm btn-outline-danger"
                                                onclick="return confirm('¿Eliminar esta reserva?')">Eliminar</a>
                                         </td>

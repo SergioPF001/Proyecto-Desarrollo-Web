@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente Externo - Cine La Estación</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+
+<header>
+    <h1>Cliente Externo</h1>
+    <p>Página HTML + JavaScript que consume la API REST de Cine La Estación.</p>
+</header>
+
+<main>
+
+    <section class="tarjeta">
+        <h2>Tipo de cambio</h2>
+        <p class="ayuda">Consulta pública: <code>GET /api/consultas/tipo-cambio</code></p>
+        <button id="btnTipoCambio">Consultar cotización</button>
+        <div id="tipoCambio" class="resultado"></div>
+    </section>
+
+    <section class="tarjeta">
+        <h2>Cartelera</h2>
+        <p class="ayuda">Consulta pública: <code>GET /api/peliculas</code></p>
+        <div class="fila">
+            <select id="filtroGenero">
+                <option value="">Todos los géneros</option>
+            </select>
+            <button id="btnCartelera">Cargar cartelera</button>
+        </div>
+        <div id="cartelera" class="resultado"></div>
+    </section>
+
+    <section class="tarjeta">
+        <h2>Acceso administrativo</h2>
+        <p class="ayuda">Autenticación HTTP Basic contra la API de Spring Boot.</p>
+        <div class="fila">
+            <input type="text" id="usuario" placeholder="Usuario" value="admin_cine">
+            <input type="password" id="contrasena" placeholder="Contraseña" value="LaEstacion2026!">
+            <button id="btnIngresar">Ingresar</button>
+            <button id="btnSalir" class="secundario">Salir</button>
+        </div>
+        <div id="estadoSesion" class="resultado"></div>
+    </section>
+
+    <section class="tarjeta">
+        <h2>Mantenimiento de snacks</h2>
+        <p class="ayuda">Requiere rol ADMIN: <code>POST</code>, <code>PUT</code> y <code>DELETE /api/snacks</code></p>
+
+        <div class="fila">
+            <input type="text" id="snackNombre" placeholder="Nombre">
+            <input type="text" id="snackCategoria" placeholder="Categoría">
+            <input type="number" id="snackPrecio" placeholder="Precio">
+            <input type="number" id="snackStock" placeholder="Stock">
+            <button id="btnCrearSnack">Agregar</button>
+        </div>
+
+        <button id="btnSnacks" class="secundario">Cargar snacks</button>
+        <div id="snacks" class="resultado"></div>
+    </section>
+
+    <section class="tarjeta">
+        <h2>Reservas</h2>
+        <p class="ayuda">Requiere rol ADMIN o CAJERO: <code>GET /api/reservas</code></p>
+        <button id="btnReservas">Cargar reservas</button>
+        <div id="reservas" class="resultado"></div>
+    </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,7 +84,8 @@
                                 <div class="mt-2 mb-3">
                                     <span th:each="h : ${p.horarios.split(',')}" class="admin-horario-pill" th:text="${h.trim()}"></span>
                                 </div>
-                                <a th:href="@{/admin/peliculas/eliminar/{id}(id=${p.id})}"
+                                <a sec:authorize="hasRole('ADMIN')"
+                                   th:href="@{/admin/peliculas/eliminar/{id}(id=${p.id})}"
                                    class="btn btn-sm btn-outline-danger w-100"
                                    onclick="return confirm('¿Eliminar esta película?')">Eliminar</a>
                             </div>

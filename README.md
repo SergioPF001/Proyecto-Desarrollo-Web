@@ -1,171 +1,221 @@
 # Cine La Estación — Sistema Web de Gestión y Reservas
 
----
+Sistema web para un cine, hecho con **Java 21**, **Spring Boot 3.2.5**, **Spring Security**, **MySQL 8** y vistas en **Thymeleaf** con **Bootstrap 5**.
 
-## PARTE 1 — ¿Qué es el sistema y qué problema resuelve?
+Tiene una cara pública, donde cualquier persona ve la cartelera y reserva sus asientos en un mapa visual, y un panel administrativo protegido por login, donde el personal del cine gestiona reservas, películas, clientes y snacks.
 
-Imaginen que tienen un cine y toda su gestión la hacen en papel o en hojas de Excel. Los clientes llaman para preguntar si hay asientos, el empleado tiene que revisar una lista manual, anotar el nombre, calcular el precio… Es lento, propenso a errores y muy difícil de escalar.
-
-**Cine La Estación** es un sistema web completo que digitaliza toda esa operación.
-
-El sistema tiene **dos caras**:
-
-**La cara pública** — lo que cualquier cliente puede ver sin necesidad de registrarse:
-- Una página de inicio con la cartelera actual, los servicios del cine, quiénes somos y contacto.
-- Un módulo de reservas donde el cliente elige su película, selecciona la fecha y el horario, escoge sus asientos en un mapa visual interactivo, ingresa sus datos personales y confirma. Todo desde el navegador, sin llamar a nadie.
-
-**La cara administrativa** — protegida por login, solo para el personal del cine:
-- Un dashboard con métricas clave: ingresos totales, reservas pendientes, clientes registrados, películas en cartelera.
-- Gestión completa de películas, clientes, reservas y snacks (agregar, consultar, eliminar).
-- Estadísticas con gráficos de barras, líneas y circulares para analizar el negocio.
-- Dos roles de usuario: Administrador (acceso total) y Cajero (acceso limitado).
-
-El proyecto fue desarrollado con **Java 21**, **Spring Boot 3.2.5**, base de datos **MySQL** y vistas en **Thymeleaf** con estilos **Bootstrap 5**.
+Este README explica **qué se implementó en esta entrega**, dividido en 5 partes. La documentación completa del proyecto —descripción, modelamiento, evidencias de ejecución, limitaciones, conclusiones y bibliografía— está en **[docs/DOCUMENTACION.md](docs/DOCUMENTACION.md)**.
 
 ---
 
-## PARTE 2 — ¿Cómo está construido? La arquitectura del sistema
+## PARTE 1 — De dónde partimos y a dónde llegamos
 
-El sistema sigue una arquitectura en capas, que es el estándar profesional para aplicaciones web en Java. Cada capa tiene una responsabilidad específica y no se mezcla con las demás.
+La versión anterior del proyecto ya reservaba asientos y tenía un panel de administración, pero arrastraba tres problemas importantes:
 
-```
-[ Navegador del usuario ]
-         ↓  petición HTTP
-[ Controlador ]  ← recibe la petición y decide qué hacer
-         ↓
-[ Servicio ]     ← contiene la lógica del negocio
-         ↓
-[ Repositorio ]  ← habla directamente con la base de datos
-         ↓
-[ Base de datos MySQL ]
-         ↑
-[ Modelo / Entidad ]  ← representa las tablas de la base de datos
+**El login era casero.** Los usuarios y contraseñas estaban escritos dentro del código, en texto plano, dentro de un `Map`. Cualquiera que abriera el archivo los veía.
+
+**La seguridad se repetía a mano.** Cada método del `AdminController` empezaba con la misma línea:
+
+```java
+if (sesion.getAttribute("loggedIn") == null) return "redirect:/login";
 ```
 
-**¿Por qué esta separación?**
+Eso se repetía más de veinte veces. Bastaba olvidar una sola línea en un método nuevo para dejar una página abierta al público sin darse cuenta.
 
-Si mañana queremos cambiar MySQL por otro motor de base de datos, solo tocamos los repositorios. Si queremos cambiar cómo se calcula el precio de una reserva, solo tocamos el servicio. Si queremos agregar una nueva pantalla, solo tocamos el controlador. Cada parte es independiente y reemplazable.
+**El sistema estaba encerrado en sí mismo.** Solo se podía usar desde sus propias páginas HTML. Ningún otro programa podía consultar la cartelera ni registrar nada.
 
-**Las tecnologías que se usaron y por qué:**
+En esta entrega se corrigieron los tres problemas y se agregaron dos funcionalidades nuevas:
 
-| Tecnología | Versión | Por qué se eligió |
+| # | Qué se implementó | Dónde vive |
 |---|---|---|
-| Java 21 | LTS | Última versión de soporte a largo plazo, estable y moderna |
-| Spring Boot 3.2.5 | Estable | Levanta un servidor web completo con mínima configuración |
-| Spring Data JPA | Incluido | Convierte objetos Java en tablas SQL automáticamente |
-| Thymeleaf 3.1 | Incluido | Genera HTML dinámico en el servidor, simple y seguro |
-| MySQL 8 | — | Base de datos relacional robusta y gratuita |
-| Bootstrap 5.3.3 | WebJar | Diseño responsivo profesional sin escribir CSS desde cero |
-| Chart.js 4.4.3 | WebJar | Gráficos interactivos en el navegador |
+| 1 | Seguridad real con Spring Security, roles y menús dinámicos | `config/SecurityConfig.java` |
+| 2 | Usuarios guardados en base de datos con contraseñas cifradas | `model/Usuario.java` |
+| 3 | Una API REST propia que devuelve JSON | `controller/api/` |
+| 4 | Un cliente externo en HTML + JavaScript, fuera de Spring Boot | `cliente-externo/` |
+| 5 | Integración con dos APIs externas: tipo de cambio y consulta de DNI | `service/ConsultaExternaService.java` |
 
-Un detalle importante: Bootstrap y Chart.js se sirven como **WebJars**, lo que significa que están empaquetados dentro del propio proyecto Java y no dependen de servidores externos (CDN). El sistema funciona aunque no haya internet.
+**Archivos nuevos que conviene revisar:**
+
+```
+src/main/java/com/amsuno/
+├── config/
+│   ├── SecurityConfig.java          ← toda la seguridad, en un solo archivo
+│   └── WebConfig.java               ← permiso CORS y cliente HTTP
+├── controller/
+│   ├── HerramientasController.java  ← página que usa las APIs externas
+│   └── api/                         ← los 4 controladores REST
+├── model/Usuario.java               ← tabla de usuarios del panel
+├── service/
+│   ├── UsuarioDetailsService.java   ← le dice a Spring quién es cada usuario
+│   └── ConsultaExternaService.java  ← habla con las APIs de terceros
+└── exception/                       ← errores traducidos a mensajes claros
+
+cliente-externo/                     ← página HTML + JS, sin nada de Java
+docs/DOCUMENTACION.md                ← documentación completa
+```
 
 ---
 
-## PARTE 3 — ¿Cómo se organizan los datos? El modelo de base de datos
+## PARTE 2 — La seguridad: Spring Security, roles y menús
 
-Esta es la parte más importante de entender antes de hablar de cualquier funcionalidad. Los datos del sistema se organizan en **7 entidades** (tablas en la base de datos), y cada una representa algo del mundo real del cine.
+### Los usuarios ahora viven en la base de datos
 
-**Sala** — Una sala física del cine. Tiene nombre, cantidad de filas y columnas.
-*Ejemplo: "Sala Principal" con 5 filas y 8 columnas = 40 asientos.*
+Se creó la entidad `Usuario` con tres campos: usuario, contraseña y rol. Las contraseñas se guardan cifradas con **BCrypt**, un algoritmo diseñado específicamente para contraseñas.
 
-**Asiento** — Un asiento específico dentro de una sala. Tiene su fila (A, B, C…), número (1 al 8) y tipo (normal, preferencial o VIP). Un asiento pertenece a una sola sala.
+Cifrar no es lo mismo que ocultar: BCrypt es una función de **un solo sentido**. Se puede comprobar si una contraseña coincide, pero es imposible recuperarla desde lo guardado. Si alguien roba la base de datos, no obtiene ninguna contraseña.
 
-**Pelicula** — Una película en cartelera. Tiene título, género, duración, clasificación (G, PG-13…), precio de la entrada, si es estreno, y los horarios disponibles separados por coma. Una película se proyecta en una sala específica.
+La clase `UsuarioDetailsService` es el puente: cuando alguien intenta entrar, Spring Security le pregunta a esta clase quién es ese usuario, y ella lo busca en la tabla y devuelve su rol.
 
-**Cliente** — Una persona que hace una reserva. Solo se guarda nombre, email y teléfono. No necesita contraseña porque el sistema no requiere que los clientes se registren; se identifican por su email.
+### Toda la seguridad, en un solo archivo
 
-**Reserva** — El evento central del sistema. Vincula a un cliente con una película, en una fecha y hora específica, por una cantidad de asientos y un precio total. Tiene un estado: Pendiente, Confirmada o Cancelada.
+`SecurityConfig.java` reemplaza las veinte comprobaciones manuales. Las reglas se declaran una sola vez y se aplican a todas las rutas por igual:
 
-**ReservaAsiento** — La tabla intermedia que dice exactamente qué asientos físicos se reservaron en cada reserva. Es necesaria porque una reserva puede ocupar varios asientos, y un asiento puede estar en muchas reservas distintas (en fechas distintas).
-
-**Snack** — Un producto del snack bar. Tiene nombre, categoría, precio, stock y descripción.
-
-**Relaciones entre las tablas:**
-
-```
-Sala ──── (tiene muchos) ──── Asiento
-Sala ──── (asignada a) ──── Pelicula
-
-Cliente ──── (hace) ──── Reserva
-Pelicula ──── (es parte de) ──── Reserva
-
-Reserva ──── (ocupa) ──── ReservaAsiento ──── (referencia a) ──── Asiento
+```java
+.requestMatchers("/", "/reservar", "/login").permitAll()
+.requestMatchers("/admin/estadisticas", "/admin/graficos", "/admin/configuracion").hasRole("ADMIN")
+.requestMatchers("/admin/*/eliminar/**").hasRole("ADMIN")
+.requestMatchers("/admin/**").hasAnyRole("ADMIN", "CAJERO")
 ```
 
-La tabla `reserva_asiento` es la clave del sistema. Cuando alguien cancela una reserva, esa tabla se limpia y los asientos quedan libres para otra reserva en la misma fecha.
+Los controladores quedaron limpios: ya no saben nada de sesiones ni de permisos, solo de su trabajo.
+
+### Dos formas de entrar, porque hay dos tipos de cliente
+
+Un navegador y un programa no se identifican igual, así que la configuración habilita ambas:
+
+- **Formulario de login** para las páginas web (con sesión y protección CSRF).
+- **HTTP Basic** para la API, porque un programa en JavaScript no puede llenar un formulario HTML.
+
+Spring Security elige cuál usar según lo que el cliente pida: si pide HTML lo manda al formulario; si pide JSON le responde `401`.
+
+### Los permisos de cada rol
+
+| Recurso | Público | CAJERO | ADMIN |
+|---|:---:|:---:|:---:|
+| Inicio, reservas públicas, login | Sí | Sí | Sí |
+| Dashboard, reservas, películas, clientes, snacks, herramientas | No | Sí | Sí |
+| Estadísticas, gráficos, configuración | No | No | Sí |
+| Cualquier acción de **eliminar** | No | No | Sí |
+
+### El menú se adapta al rol
+
+El sidebar usa `sec:authorize` para mostrar solo lo que el usuario puede usar. El cajero ve **6 opciones**; el administrador ve **9**. Los botones "Eliminar" tampoco aparecen para el cajero.
+
+**Pero ocultar un botón no protege nada**, porque cualquiera puede escribir la URL a mano. Por eso cada restricción visual tiene su regla equivalente del lado del servidor. Si el cajero escribe `/admin/estadisticas` directamente en el navegador, recibe la página de acceso denegado.
+
+Esa es la idea central: **la seguridad se aplica en dos niveles a la vez**, la vista y la URL. El menú es comodidad; la cadena de filtros es la protección.
 
 ---
 
-## PARTE 4 — ¿Qué puede hacer el sistema? Las funcionalidades principales
+## PARTE 3 — La API REST propia
 
-**Flujo de reserva pública (lo que ve el cliente):**
+El mismo backend que genera las páginas Thymeleaf ahora expone también una **API REST** bajo `/api/**`, que responde en JSON en lugar de HTML.
 
-El proceso tiene tres pasos bien definidos, todos en la misma URL (`/reservar`), pero el sistema detecta en qué paso está según los parámetros de la URL:
+### Endpoints disponibles
 
+| Método | Endpoint | Qué hace | Quién puede |
+|---|---|---|---|
+| GET | `/api/peliculas` | Lista la cartelera (filtro opcional `?genero=`) | Público |
+| GET | `/api/peliculas/generos` | Lista los géneros disponibles | Público |
+| GET | `/api/peliculas/{id}` | Devuelve una película | Público |
+| GET | `/api/snacks` | Lista los snacks | Público |
+| POST | `/api/snacks` | Crea un snack | ADMIN |
+| PUT | `/api/snacks/{id}` | Actualiza un snack | ADMIN |
+| DELETE | `/api/snacks/{id}` | Elimina un snack | ADMIN |
+| GET | `/api/reservas` | Lista las reservas (filtro opcional `?estado=`) | ADMIN o CAJERO |
+| PUT | `/api/reservas/{id}/confirmar` | Confirma una reserva | ADMIN |
+| PUT | `/api/reservas/{id}/cancelar` | Cancela y libera los asientos | ADMIN |
+| GET | `/api/consultas/tipo-cambio` | Cotización del dólar | Público |
+| GET | `/api/consultas/dni/{numero}` | Consulta un DNI en RENIEC | Público |
+
+Así, las **consultas** son abiertas (la cartelera es información pública) y los **procesos de mantenimiento** exigen ser administrador.
+
+### La API no devuelve las entidades directamente
+
+Devuelve **DTOs**: objetos hechos a medida para la respuesta. `PeliculaDTO` entrega los horarios ya separados en una lista y el nombre de la sala, en vez de arrastrar toda la entidad `Sala` con sus columnas internas.
+
+Esto evita exponer la estructura de la base de datos y deja libertad para cambiarla mañana sin romper a quien consume la API.
+
+### Los errores también responden en JSON
+
+`ApiExceptionHandler` traduce los errores a mensajes entendibles con el código HTTP correcto:
+
+```json
+GET /api/snacks/999   →  404   {"mensaje":"No existe el snack con id 999"}
+GET /api/consultas/dni/123  →  400   {"mensaje":"El DNI debe tener exactamente 8 dígitos."}
 ```
-Paso 1: /reservar
-→ El cliente ve todas las películas disponibles en tarjetas.
-→ Hace clic en la que quiere.
 
-Paso 2: /reservar?peliculaId=1
-→ Aparece la información de la película seleccionada.
-→ El cliente elige la fecha en un calendario y el horario haciendo clic en un botón.
+Y la API distingue dos situaciones que suelen confundirse:
 
-Paso 3: /reservar?peliculaId=1&fecha=2026-06-15 17:30
-→ Aparece el mapa de asientos con dos secciones y pasillo central.
-→ Los asientos ocupados aparecen en rojo y no se pueden seleccionar.
-→ El cliente llena sus datos (nombre, apellido, email, teléfono).
-→ Confirma la reserva y el sistema la guarda en la base de datos.
-```
-
-Si el cliente ya existe en el sistema (mismo email), se reutiliza su registro. Si es nuevo, se crea automáticamente. El cliente nunca necesita "registrarse" explícitamente.
-
-**Panel de administración (lo que ve el personal):**
-
-Acceso mediante `/login` con dos roles:
-- `admin_cine` / `LaEstacion2026!` — Acceso completo a todo, incluyendo estadísticas y configuración.
-- `cajero_cine` / `Cajero2026!` — Acceso a reservas, películas y clientes, pero no a estadísticas ni configuración.
-
-Desde el panel, el administrador puede:
-- Crear reservas manualmente eligiendo cliente, película, fecha, horario y asientos desde el mismo mapa visual que el cliente público.
-- Confirmar o cancelar reservas existentes.
-- Agregar y eliminar películas, clientes y snacks.
-- Ver gráficos de rendimiento: ingresos por película, distribución de reservas por estado, tendencia mensual.
+- **`401`** — no te identificaste.
+- **`403`** — te identificaste, pero tu rol no tiene permiso.
 
 ---
 
-## PARTE 5 — La parte técnica avanzada: Procedimientos Almacenados
+## PARTE 4 — El cliente externo, fuera de Spring Boot
 
-Esta es la característica más avanzada del proyecto desde el punto de vista de bases de datos.
-
-Un **procedimiento almacenado** es un bloque de código SQL que vive dentro del servidor de base de datos MySQL, no en el código Java. Se llama por nombre desde Java y MySQL lo ejecuta. Es como tener una función en la base de datos.
-
-En este proyecto se implementaron **4 procedimientos almacenados**, y hay una razón específica para cada uno:
-
-**`sp_AsientosDisponibles`** — El más importante. Recibe el ID de una película y una fecha, y devuelve todos los asientos de esa sala indicando si están ocupados o disponibles para ese día. Requería un `JOIN` complejo entre 4 tablas (pelicula → sala → asiento → reserva_asiento → reserva) con una condición de exclusión de reservas canceladas. Este tipo de consulta se beneficia enormemente de estar en el motor de base de datos porque es más rápida que traer todos los datos a Java y filtrarlos ahí.
-
-**`sp_CrearReserva`** — Inserta una nueva reserva y devuelve el ID generado automáticamente usando `LAST_INSERT_ID()`. Se usó procedimiento porque necesitamos ese ID de vuelta (parámetro OUT) de forma atómica — si alguien más inserta al mismo tiempo, `LAST_INSERT_ID()` garantiza que cada conexión obtiene su propio ID.
-
-**`sp_CancelarReserva`** — Realiza dos operaciones en secuencia: primero elimina los registros de `reserva_asiento` para liberar los asientos, y luego actualiza el estado de la reserva a 'Cancelada'. Se usa procedimiento porque estas dos operaciones deben ocurrir juntas como una unidad. Si fallara entre medias, los asientos quedarían huérfanos.
-
-**`sp_ResumenSala`** — Calcula cuántos asientos totales, ocupados y disponibles tiene una sala para una fecha dada. Útil para métricas internas.
-
-Los procedimientos se crean automáticamente cada vez que arranca la aplicación, gracias a la clase `ProcedimientosLoader.java` que los registra en MySQL antes de que el sistema empiece a recibir peticiones.
+En la carpeta [`cliente-externo/`](cliente-externo/) hay una página hecha **solo con HTML, CSS y JavaScript**. No tiene ni una línea de Java. No usa Spring Boot. Se sirve desde otro puerto y llama a la API con `fetch()`.
 
 ```
-Spring Boot arranca
-        ↓
-ProcedimientosLoader se ejecuta (evento ApplicationReady)
-        ↓
-Elimina los procedimientos viejos (DROP PROCEDURE IF EXISTS)
-        ↓
-Los recrea con la versión actualizada
-        ↓
-El sistema ya puede recibir peticiones
+localhost:5500                        localhost:8080
+┌──────────────────────┐   fetch()   ┌──────────────────────┐
+│  HTML + JavaScript   │ ──────────► │  API de Spring Boot  │
+│  (sin Java)          │ ◄────────── │  responde JSON       │
+└──────────────────────┘             └──────────────────────┘
 ```
 
-Esto garantiza que los procedimientos en MySQL siempre estén sincronizados con el código Java, sin necesidad de ejecutar scripts SQL manualmente.
+### Por qué hizo falta configurar CORS
+
+Como el cliente vive en el puerto `5500` y la API en el `8080`, para el navegador son **dos sitios distintos**. Por seguridad, el navegador bloquea por defecto ese tipo de llamadas.
+
+CORS es el permiso que el servidor da para autorizarlas. Se declara en `WebConfig.java`:
+
+```java
+registro.addMapping("/api/**").allowedOrigins("*")
+```
+
+Sin esa línea, el cliente externo no funcionaría, aunque la API estuviera perfecta.
+
+### Cómo se autentica
+
+Para las operaciones protegidas, el cliente manda usuario y contraseña con **HTTP Basic**, en una cabecera de cada petición:
+
+```javascript
+credenciales = btoa(usuario + ":" + contrasena);
+cabeceras["Authorization"] = "Basic " + credenciales;
+```
+
+La página permite comprobar los roles en vivo: si inicias sesión como `cajero_cine` e intentas agregar un snack, la API responde `403` y aparece el mensaje de permisos.
+
+Esto demuestra que el backend dejó de ser una aplicación cerrada y se convirtió en una **plataforma reutilizable**. Mañana podría ser una app móvil consumiendo los mismos endpoints, sin cambiar una línea del servidor.
+
+---
+
+## PARTE 5 — Las APIs externas: tipo de cambio y DNI
+
+La nueva página **Herramientas** del panel (`/admin/herramientas`) consume dos APIs de terceros y las conecta con el negocio del cine. No son adornos: cada una resuelve algo real.
+
+### Tipo de cambio — gratuita, sin token
+
+`https://open.er-api.com/v6/latest/USD`
+
+Trae la cotización real del dólar y la usa para mostrar el precio de cada película en soles **y en dólares**. Sirve para atender turistas sin sacar la calculadora.
+
+```json
+{"monedaBase":"USD","monedaDestino":"PEN","valor":3.402424}
+```
+
+### Consulta de DNI — gratuita, requiere token
+
+`https://api.apis.net.pe/v2/reniec/dni`
+
+Busca los datos de una persona por su DNI y autocompleta el nombre al registrarla como cliente. Evita errores de tipeo y agiliza la atención en caja.
+
+### Diseñadas para fallar bien
+
+Una API externa puede estar caída, lenta o pedir un token vencido. Si eso pasa, `ConsultaExternaService` traduce el error a un mensaje claro y **la página sigue cargando**. Si no hay internet o falta el token, el resto del sistema funciona con total normalidad.
+
+Programar contra un servicio ajeno obliga a asumir que algún día no va a responder. El sistema se degrada, no se cae.
 
 ---
 
@@ -173,21 +223,21 @@ Esto garantiza que los procedimientos en MySQL siempre estén sincronizados con 
 
 **Requisitos previos:**
 - Java 21 instalado
-- MySQL 8 corriendo en localhost:3306
+- MySQL 8 corriendo en `localhost:3306`
 - Base de datos `cine_db` creada (vacía es suficiente)
 
 ```bash
-# Desde la carpeta raíz del proyecto
 mvn spring-boot:run
 ```
 
-Luego abrir en el navegador:
+Al iniciar por primera vez, el sistema crea automáticamente las tablas, los usuarios, las salas, los asientos, películas, clientes y reservas de demostración. No hay que ejecutar ningún script SQL.
 
 | URL | Descripción |
 |---|---|
 | `http://localhost:8080/` | Página pública del cine |
 | `http://localhost:8080/reservar` | Módulo de reservas para clientes |
 | `http://localhost:8080/login` | Acceso al panel de administración |
+| `http://localhost:8080/api/peliculas` | API REST (consulta pública) |
 
 **Credenciales del panel:**
 
@@ -196,4 +246,26 @@ Luego abrir en el navegador:
 | `admin_cine` | `LaEstacion2026!` | Administrador (acceso total) |
 | `cajero_cine` | `Cajero2026!` | Cajero (acceso limitado) |
 
-Al iniciar por primera vez, el sistema crea automáticamente las tablas, las salas, los asientos, películas, clientes y reservas de demostración. No es necesario ejecutar ningún script SQL.
+### Ejecutar el cliente externo
+
+Con Spring Boot ya levantado, en **otra terminal**:
+
+```bash
+cd cliente-externo
+python -m http.server 5500
+```
+
+Y abrir `http://localhost:5500`.
+
+### Activar la consulta de DNI (opcional)
+
+El tipo de cambio funciona sin configurar nada. La consulta de DNI necesita un token gratuito:
+
+1. Crear una cuenta en <https://apis.net.pe> y copiar el token.
+2. Pegarlo en `src/main/resources/application.properties`:
+
+```properties
+api.dni.token=TU_TOKEN_AQUI
+```
+
+Sin token, esa sección muestra un aviso y todo lo demás sigue funcionando.
